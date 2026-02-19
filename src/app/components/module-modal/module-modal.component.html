@@ -1,0 +1,200 @@
+<div class="modal" *ngIf="isOpen">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>{{ modalConfig.title }}</h3>
+      <button class="btn-icon" (click)="onClose()" [disabled]="isLoading">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="moduleTitle">Título</label>
+          <input 
+            type="text" 
+            id="moduleTitle" 
+            [(ngModel)]="moduleData.title" 
+            name="title" 
+            required 
+            [disabled]="isLoading"
+            placeholder="Ingresa el título del módulo">
+        </div>
+        <div class="form-group">
+          <label for="moduleDescription">Descripción</label>
+          <textarea 
+            id="moduleDescription" 
+            [(ngModel)]="moduleData.description" 
+            name="description" 
+            required 
+            [disabled]="isLoading"
+            placeholder="Describe el contenido y objetivos del módulo"
+            rows="4"></textarea>
+        </div>
+
+        <!-- Sección de Video -->
+        <div class="form-group">
+          <label for="moduleVideoUrl">
+            <span *ngIf="mode === 'create'">URL del Video del Módulo</span>
+            <span *ngIf="mode === 'edit'">URL del Video del Módulo</span>
+            <span class="optional-label">(Opcional)</span>
+          </label>
+          <div class="video-url-input">
+            <input 
+              type="url" 
+              id="moduleVideoUrl" 
+              [(ngModel)]="videoUrl"
+              (input)="onVideoUrlChange()"
+              name="videoUrl" 
+              [disabled]="isLoading"
+              placeholder="https://drive.usercontent.google.com/... o https://catbox.moe/..."
+              class="url-input">
+            <button 
+              *ngIf="videoUrl"
+              type="button"
+              class="btn-icon-small btn-danger" 
+              (click)="clearVideoUrl()"
+              title="Limpiar URL"
+              [disabled]="isLoading">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <p class="video-url-hint">
+            Ingresa la URL del video (Google Drive o Catbox)
+          </p>
+        </div>
+
+                 <!-- Sección de Recursos Existentes -->
+         <div class="form-group" *ngIf="existingResources.length > 0">
+           <label>Recursos Existentes</label>
+           <div class="resources-list">
+             <div class="resource-item" 
+                  *ngFor="let resource of existingResources; let i = index"
+                  [class.marked-for-deletion]="isResourceMarkedForDeletion(i)">
+               <div class="resource-info">
+                 <span class="resource-name">{{ resource.name }}</span>
+                 <span class="resource-size" *ngIf="resource.size">{{ formatFileSize(resource.size) }}</span>
+                 <span class="deletion-notice" *ngIf="isResourceMarkedForDeletion(i)">
+                   ⚠️ Se eliminará al actualizar
+                 </span>
+               </div>
+               <div class="resource-actions">
+                 <button 
+                   type="button"
+                   class="btn-icon-small" 
+                   (click)="downloadResource(resource)"
+                   title="Descargar"
+                   [disabled]="isResourceMarkedForDeletion(i)">
+                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                     <polyline points="7 10 12 15 17 10"></polyline>
+                     <line x1="12" y1="15" x2="12" y2="3"></line>
+                   </svg>
+                 </button>
+                 
+                 <!-- Botón para marcar/desmarcar eliminación -->
+                 <button 
+                   type="button"
+                   [class]="isResourceMarkedForDeletion(i) ? 'btn-icon-small btn-warning' : 'btn-icon-small btn-danger'"
+                   (click)="isResourceMarkedForDeletion(i) ? unmarkResourceForDeletion(i) : markResourceForDeletion(i)"
+                   [title]="isResourceMarkedForDeletion(i) ? 'Cancelar eliminación' : 'Marcar para eliminar'"
+                   *ngIf="mode === 'edit'">
+                   <svg *ngIf="!isResourceMarkedForDeletion(i)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                     <line x1="18" y1="6" x2="6" y2="18"></line>
+                     <line x1="6" y1="6" x2="18" y2="18"></line>
+                   </svg>
+                   <svg *ngIf="isResourceMarkedForDeletion(i)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                     <path d="M9 12l2 2 4-4"></path>
+                     <circle cx="12" cy="12" r="10"></circle>
+                   </svg>
+                 </button>
+               </div>
+             </div>
+           </div>
+         </div>
+
+        <!-- Sección de Nuevos Archivos -->
+        <div class="form-group">
+          <label for="moduleFiles">
+            <span *ngIf="mode === 'create'">Recursos del Módulo</span>
+            <span *ngIf="mode === 'edit'">Agregar Nuevos Recursos</span>
+            <span class="file-type-hint">(Solo archivos PDF)</span>
+          </label>
+          <div class="file-upload">
+            <input 
+              type="file" 
+              id="moduleFiles" 
+              accept="application/pdf,.pdf"
+              (change)="onFileSelected($event)" 
+              multiple 
+              #moduleFilesInput 
+              [disabled]="isLoading">
+            <button 
+              class="btn-secondary" 
+              type="button" 
+              (click)="moduleFilesInput.click()"
+              [disabled]="isLoading">
+              <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              Seleccionar Archivos PDF
+            </button>
+          </div>
+          
+          <!-- Mensaje de error para archivos no PDF -->
+          <div *ngIf="fileError" class="file-error">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>{{ fileError }}</span>
+          </div>
+          
+          <!-- Lista de archivos seleccionados -->
+          <div *ngIf="selectedFiles.length > 0" class="selected-files">
+            <div class="file-item" *ngFor="let file of selectedFiles; let i = index">
+              <div class="file-info">
+                <span class="file-name">{{ file.name }}</span>
+                <span class="file-size">{{ formatFileSize(file.size) }}</span>
+              </div>
+              <button 
+                type="button"
+                class="btn-icon-small btn-danger" 
+                (click)="removeSelectedFile(i)"
+                title="Eliminar">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button 
+            type="button" 
+            class="btn-secondary" 
+            (click)="onClose()"
+            [disabled]="isLoading">
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            class="btn-primary"
+            [disabled]="isLoading || !moduleData.title || !moduleData.description">
+            <span *ngIf="isLoading" class="loading-spinner"></span>
+            {{ isLoading ? modalConfig.loadingButtonText : modalConfig.submitButtonText }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

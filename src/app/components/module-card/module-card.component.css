@@ -1,0 +1,352 @@
+.module-card {
+  position: relative;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  margin: 16px 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.module-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border-color: #2563eb;
+}
+
+.module-card:hover .module-hover-effect {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.module-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.module-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
+  border-radius: 12px;
+  color: white;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.module-card:hover .module-icon {
+  transform: scale(1.1);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+}
+
+.module-title h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+.module-card:hover .module-title h3 {
+  color: #2563eb;
+}
+
+.module-content {
+  margin-bottom: 20px;
+}
+
+.module-description {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.module-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.module-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.module-id {
+  background: #f8fafc;
+  color: #64748b;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.module-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: 8px;
+}
+
+.action-btn:hover::before {
+  opacity: 0.1;
+}
+
+.edit-btn:hover {
+  color: #059669;
+  background: #f0fdf4;
+}
+
+.delete-btn:hover {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.action-btn svg {
+  position: relative;
+  z-index: 1;
+}
+
+.module-hover-effect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  border-radius: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .module-card {
+    padding: 20px;
+    margin: 12px 0;
+  }
+
+  .module-header {
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .module-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .module-title h3 {
+    font-size: 1.125rem;
+  }
+
+  .module-description {
+    font-size: 0.9rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .module-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .module-actions {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .module-card {
+    padding: 16px;
+  }
+
+  .module-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .module-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .module-title h3 {
+    font-size: 1rem;
+  }
+
+  .action-btn {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* Forzar tema claro para las tarjetas de módulos */
+.module-card {
+  /* Asegurar que siempre use colores claros */
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+  border-color: #e2e8f0 !important;
+  color: #1e293b !important;
+}
+
+.module-title h3 {
+  color: #1e293b !important;
+}
+
+.module-description {
+  color: #64748b !important;
+}
+
+.module-id {
+  background: #f8fafc !important;
+  color: #64748b !important;
+}
+
+.module-footer {
+  border-top-color: #e2e8f0 !important;
+}
+
+.action-btn {
+  color: #64748b !important;
+}
+
+/* Dark mode support - Solo se aplica cuando el sistema está explícitamente en modo oscuro */
+@media (prefers-color-scheme: dark) {
+  /* Comentado temporalmente para forzar el tema claro */
+  /*
+  .module-card {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-color: #475569;
+    color: #f1f5f9;
+  }
+
+  .module-title h3 {
+    color: #f8fafc;
+  }
+
+  .module-description {
+    color: #cbd5e1;
+  }
+
+  .module-id {
+    background: #475569;
+    color: #cbd5e1;
+  }
+
+  .module-footer {
+    border-top-color: #475569;
+  }
+
+  .action-btn {
+    color: #94a3b8;
+  }
+
+  .edit-btn:hover {
+    background: #064e3b;
+  }
+
+  .delete-btn:hover {
+    background: #450a0a;
+  }
+  */
+}
+
+/* Focus states for accessibility */
+.module-card:focus-within {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.action-btn:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Animation for new modules */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.module-card {
+  animation: slideInUp 0.4s ease-out;
+}
+
+/* Loading state */
+.module-card.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.module-card.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

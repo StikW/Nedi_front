@@ -1,0 +1,118 @@
+name: Deploy to EC2 Nginx
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    name: Build Angular App and Deploy to EC2
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Angular application
+        run: npm run build -- --configuration production
+        env:
+          NODE_ENV: production
+
+      - name: Validate required secrets
+        run: |
+          if [ -z "${{ secrets.EC2_HOST }}" ]; then
+            echo "Error: EC2_HOST secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.EC2_USER }}" ]; then
+            echo "Error: EC2_USER secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.EC2_SSH_KEY }}" ]; then
+            echo "Error: EC2_SSH_KEY secret is not set"
+            exit 1
+          fi
+          echo "All required secrets are configured"
+
+      - name: Create deployment package
+        run: |
+          cd dist/ia-learning
+          tar -czf ../../deployment.tar.gz .
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key
+          chmod 600 ~/.ssh/ec2_key
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        env:
+          NGINX_PATH: ${{ secrets.NGINX_PATH || '/var/www/html' }}
+        run: |
+          scp -i ~/.ssh/ec2_key -o StrictHostKeyChecking=no deployment.tar.gz ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/
+          ssh -i ~/.ssh/ec2_key -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} bash << EOF
+            set -e
+            NGINX_PATH="${NGINX_PATH:-/var/www/html}"
+            
+            echo "Starting deployment to \${NGINX_PATH}..."
+            
+            # Limpiar directorio de destino
+            echo "Cleaning destination directory..."
+            sudo rm -rf "\${NGINX_PATH}"/* "\${NGINX_PATH}"/.* 2>/dev/null || true
+            
+            # Extraer y desplegar nueva versión
+            echo "Extracting new version..."
+            sudo mkdir -p "\${NGINX_PATH}"
+            sudo tar -xzf /tmp/deployment.tar.gz -C "\${NGINX_PATH}"/
+            
+            # Limpiar archivos temporales
+            rm -f /tmp/deployment.tar.gz
+            
+            # Ajustar permisos
+            echo "Setting permissions..."
+            if id "www-data" &>/dev/null; then
+              sudo chown -R www-data:www-data "\${NGINX_PATH}"
+            elif id "nginx" &>/dev/null; then
+              sudo chown -R nginx:nginx "\${NGINX_PATH}"
+            fi
+            sudo chmod -R 755 "\${NGINX_PATH}"
+            
+            # Verificar configuración de nginx
+            echo "Testing nginx configuration..."
+            if sudo nginx -t; then
+              echo "Nginx configuration is valid"
+              # Recargar nginx
+              if systemctl is-active --quiet nginx 2>/dev/null; then
+                sudo systemctl reload nginx
+              elif service nginx status &>/dev/null; then
+                sudo service nginx reload
+              else
+                echo "Warning: Could not reload nginx service"
+              fi
+            else
+              echo "Error: Nginx configuration test failed"
+              exit 1
+            fi
+            
+            echo "Deployment completed successfully!"
+          EOF
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f deployment.tar.gz
+          rm -f ~/.ssh/ec2_key
+

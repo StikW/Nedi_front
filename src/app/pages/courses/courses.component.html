@@ -1,0 +1,33 @@
+<app-navbar></app-navbar>
+
+<div class="courses-container">
+  <div class="courses-header">
+    <h1>Nuestros Cursos</h1>
+    <div class="search-filter">
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        (ngModelChange)="filterCourses()"
+        placeholder="Buscar cursos por título o descripción..."
+        class="search-input"
+      >
+      <div class="category-filter">
+        <button 
+          *ngFor="let category of categories" 
+          (click)="selectCategory(category)"
+          [class.active]="selectedCategory === category"
+          class="category-btn"
+        >
+          {{ category === 'all' ? 'Todos los Cursos' : category }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="courses-grid">
+    <app-course-card 
+      *ngFor="let course of filteredCourses" 
+      [course]="course"
+    ></app-course-card>
+  </div>
+</div> 

@@ -1,0 +1,58 @@
+<div class="course-list">
+  <div *ngIf="courses.length === 0" class="empty-state">
+    <div class="empty-state-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+        <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+        <path d="M12 14v6"></path>
+        <path d="M12 20l9-5-9-5-9 5 9 5z"></path>
+      </svg>
+    </div>
+    <h3>{{ emptyStateTitle }}</h3>
+    <p>{{ emptyStateMessage }}</p>
+    <a *ngIf="actionLink" [routerLink]="actionLink" class="action-button">
+      {{ actionText }}
+    </a>
+  </div>
+
+  <div *ngIf="courses.length > 0" class="course-grid">
+    <div *ngFor="let course of courses" class="course-card" [class.with-progress]="showProgress">
+      <div class="course-image">
+        <img [src]="course.imageUrl" [alt]="course.title">
+        <span class="level-badge" [ngClass]="'level-' + course.level">
+          {{ course.level | titlecase }}
+        </span>
+        <span *ngIf="showStatus" class="status-badge" [ngClass]="'status-' + course.status">
+          {{ course.status | titlecase | replace:'_':' ' }}
+        </span>
+      </div>
+      
+      <div class="course-content">
+        <h3 class="course-title">{{ course.title }}</h3>
+        <p class="course-description">{{ course.description }}</p>
+        
+        <div class="course-meta">
+          <span class="course-category">{{ course.category }}</span>
+          <span class="course-duration">{{ course.duration }}</span>
+        </div>
+
+        <div *ngIf="showProgress && course.progress !== undefined" class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="course.progress"></div>
+          </div>
+          <span class="progress-text">{{ course.progress }}% Complete</span>
+        </div>
+
+        <div *ngIf="course.lastAccessed" class="last-accessed">
+          Last accessed: {{ course.lastAccessed | date:'mediumDate' }}
+        </div>
+
+        <div class="course-footer">
+          <a [routerLink]="['/courses', course.id]" class="view-course-btn">
+            {{ course.status === 'completed' ? 'Review Course' : 'Continue Learning' }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

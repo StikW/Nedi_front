@@ -1,0 +1,129 @@
+<app-navbar></app-navbar>
+
+<div class="config-container">
+  <div class="config-header">
+    <div class="header-content">
+      <h1>Configurar Agente de IA Global</h1>
+      <p class="subtitle">Personaliza cómo tu agente de IA interactúa con los estudiantes en todos tus cursos.</p>
+    </div>
+  </div>
+
+  <div class="config-content">
+    <!-- Communication Style Section -->
+    <div class="config-section">
+      <h2>Estilo de Comunicación</h2>
+      <p class="section-description">Elige cómo tu agente de IA se comunica con los estudiantes.</p>
+      
+      <div class="options-grid">
+        <div class="option-card" *ngFor="let style of communicationStyles" 
+             [class.selected]="config.communicationStyle === style.value"
+             (click)="config.communicationStyle = $any(style.value)">
+          <h3>{{ style.label }}</h3>
+          <p>{{ style.description }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Response Depth Section -->
+    <div class="config-section">
+      <h2>Profundidad de Respuesta</h2>
+      <p class="section-description">Define qué tan detalladas deben ser las respuestas del agente de IA.</p>
+      
+      <div class="options-grid">
+        <div class="option-card" *ngFor="let depth of responseDepths"
+             [class.selected]="config.responseDepth === depth.value"
+             (click)="config.responseDepth = $any(depth.value)">
+          <h3>{{ depth.label }}</h3>
+          <p>{{ depth.description }}</p>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Restrictions Section -->
+    <div class="config-section">
+      <h2>Restricciones</h2>
+      <p class="section-description">Define temas y políticas que el agente de IA no debe discutir.</p>
+      
+      <div class="restrictions-grid">
+        <!-- Topics -->
+        <div class="restriction-group">
+          <h3>Temas a Evitar</h3>
+          <div class="input-group">
+            <input type="text" [(ngModel)]="newRestrictionTopic" placeholder="Agregar tema a evitar">
+            <button class="btn-secondary" (click)="addRestrictionTopic()">Agregar</button>
+          </div>
+          <div class="restriction-list" *ngIf="config.restrictions.topics.length > 0">
+            <div class="restriction-item" *ngFor="let topic of config.restrictions.topics; let i = index">
+              <span>{{ topic }}</span>
+              <button class="btn-icon" (click)="removeRestrictionTopic(i)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Policies -->
+        <div class="restriction-group">
+          <h3>Restricciones de Política</h3>
+          <div class="input-group">
+            <input type="text" [(ngModel)]="newRestrictionPolicy" placeholder="Agregar restricción de política">
+            <button class="btn-secondary" (click)="addRestrictionPolicy()">Agregar</button>
+          </div>
+          <div class="restriction-list" *ngIf="config.restrictions.policies.length > 0">
+            <div class="restriction-item" *ngFor="let policy of config.restrictions.policies; let i = index">
+              <span>{{ policy }}</span>
+              <button class="btn-icon" (click)="removeRestrictionPolicy(i)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Out of Scope Responses Section -->
+    <div class="config-section">
+      <h2>Respuestas Fuera de Alcance</h2>
+      <p class="section-description">Define cómo el agente de IA debe responder a preguntas fuera del alcance del curso.</p>
+      
+      <div class="options-grid">
+        <div class="option-card" *ngFor="let response of outOfScopeResponses"
+             [class.selected]="config.outOfScopeResponse === response.value"
+             (click)="config.outOfScopeResponse = $any(response.value)">
+          <h3>{{ response.label }}</h3>
+        </div>
+      </div>
+
+      <div class="custom-message" *ngIf="config.outOfScopeResponse === 'custom'">
+        <label for="customMessage">Mensaje de Respuesta Personalizado</label>
+        <textarea id="customMessage" [(ngModel)]="config.customOutOfScopeMessage" 
+                  placeholder="Ingresa el mensaje que la IA debe usar cuando una pregunta esté fuera de alcance"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botones al final de la página -->
+  <div class="form-actions">
+          <button type="button" class="btn-secondary" [routerLink]="['/instructor']">
+        <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Volver al Panel
+      </button>
+    <button type="button" class="btn-primary" (click)="saveConfig()">
+      <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+        <polyline points="17 21 17 13 7 13 7 21"/>
+        <polyline points="7 3 7 8 15 8"/>
+      </svg>
+      Guardar Configuración
+    </button>
+  </div>
+</div> 

@@ -1,0 +1,179 @@
+<app-navbar></app-navbar>
+
+<div class="editor-container">
+  <div class="editor-header">
+    <div class="header-content">
+      <h1>{{ isEditing ? 'Editar Curso' : 'Crear Nuevo Curso' }}</h1>
+      <p class="subtitle">{{ isEditing ? 'Actualiza la información de tu curso' : 'Completa los detalles para crear tu curso' }}</p>
+    </div>
+  </div>
+
+  <form [formGroup]="courseForm" (ngSubmit)="onSubmit()" class="editor-form">
+    <div class="form-section">
+      <h2>Información Básica</h2>
+      
+      <div class="form-group">
+        <label for="title">Título del Curso</label>
+        <input 
+          type="text" 
+          id="title" 
+          formControlName="title"
+          placeholder="Ingresa un título descriptivo para tu curso"
+          [class.error]="isFieldInvalid('title')"
+        >
+        <div class="error-message" *ngIf="isFieldInvalid('title')">
+          {{ getFieldError('title') }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Descripción del Curso</label>
+        <textarea 
+          id="description" 
+          formControlName="description"
+          rows="4"
+          placeholder="Proporciona una descripción detallada de tu curso"
+          [class.error]="isFieldInvalid('description')"
+        ></textarea>
+        <div class="error-message" *ngIf="isFieldInvalid('description')">
+          {{ getFieldError('description') }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="category">Categoría</label>
+        <select 
+          id="category" 
+          formControlName="category"
+          [class.error]="isFieldInvalid('category')"
+        >
+          <option value="">Selecciona una categoría</option>
+          <option *ngFor="let category of categories" [value]="category.value">
+            {{ category.label }}
+          </option>
+        </select>
+        <div class="error-message" *ngIf="isFieldInvalid('category')">
+          {{ getFieldError('category') }}
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Medios del Curso</h2>
+      
+      <div class="form-group">
+        <label for="courseImage">Imagen del Curso</label>
+        <div class="image-upload-container">
+          <div class="image-upload-area" 
+               [class.has-image]="selectedImage || courseForm.get('imageUrl')?.value"
+               [class.error]="!selectedImage && !courseForm.get('imageUrl')?.value && courseForm.get('imageUrl')?.touched"
+               (click)="triggerFileInput()"
+               (dragover)="onDragOver($event)"
+               (dragleave)="onDragLeave($event)"
+               (drop)="onDrop($event)">
+            
+            <input 
+              type="file" 
+              id="courseImage" 
+              #fileInput
+              accept="image/*"
+              (change)="onImageSelected($event)"
+              style="display: none;"
+            >
+            
+            <div class="upload-content" *ngIf="!selectedImage && !courseForm.get('imageUrl')?.value">
+              <svg xmlns="http://www.w3.org/2000/svg" class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <p class="upload-text">Haz clic para seleccionar una imagen o arrastra aquí</p>
+              <p class="upload-hint">Formatos soportados: JPG, PNG, GIF (máx. 5MB)</p>
+            </div>
+            
+            <div class="image-preview" *ngIf="selectedImage || courseForm.get('imageUrl')?.value">
+              <img [src]="selectedImage || courseForm.get('imageUrl')?.value" alt="Vista previa del curso">
+              <div class="image-overlay">
+                <button type="button" class="btn-change-image" (click)="triggerFileInput()">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  Cambiar Imagen
+                </button>
+                <button type="button" class="btn-remove-image" (click)="removeImage()" *ngIf="selectedImage">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="upload-info" *ngIf="selectedImage">
+            <p class="file-name">{{ selectedImageName }}</p>
+            <p class="file-size">{{ selectedImageSize }}</p>
+          </div>
+        </div>
+        
+        <div class="error-message" *ngIf="!selectedImage && !courseForm.get('imageUrl')?.value && courseForm.get('imageUrl')?.touched">
+          La imagen del curso es requerida
+        </div>
+        
+        <div class="upload-progress" *ngIf="isUploading">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+          </div>
+          <p class="progress-text">Subiendo imagen... {{ uploadProgress }}%</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Contenido del Curso</h2>
+      
+      <div class="form-group">
+        <label for="objectives">Objetivos de Aprendizaje</label>
+        <textarea 
+          id="objectives" 
+          formControlName="objectives"
+          rows="4"
+          placeholder="Lista los objetivos de aprendizaje clave para tu curso"
+          [class.error]="isFieldInvalid('objectives')"
+        ></textarea>
+        <div class="error-message" *ngIf="isFieldInvalid('objectives')">
+          {{ getFieldError('objectives') }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="prerequisites">Prerrequisitos</label>
+        <textarea 
+          id="prerequisites" 
+          formControlName="prerequisites"
+          rows="3"
+          placeholder="Lista cualquier prerrequisito para tomar este curso"
+          [class.error]="isFieldInvalid('prerequisites')"
+        ></textarea>
+        <div class="error-message" *ngIf="isFieldInvalid('prerequisites')">
+          {{ getFieldError('prerequisites') }}
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" [routerLink]="isEditing ? ['/instructor/courses', courseId] : '/instructor'">
+        <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        {{ isEditing ? 'Volver al Curso' : 'Cancelar' }}
+      </button>
+      <button type="submit" class="btn-primary" [disabled]="!isFormValid() || isSubmitting">
+        <span *ngIf="!isSubmitting">{{ isEditing ? 'Actualizar Curso' : 'Crear Curso' }}</span>
+        <span *ngIf="isSubmitting">Guardando...</span>
+      </button>
+    </div>
+  </form>
+</div> 

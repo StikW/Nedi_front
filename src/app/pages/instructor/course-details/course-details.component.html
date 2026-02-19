@@ -1,0 +1,364 @@
+<app-navbar></app-navbar>
+
+<!-- Estado de carga -->
+<div *ngIf="isLoading" class="loading-container">
+  <div class="loading-spinner"></div>
+  <p>Cargando curso...</p>
+</div>
+
+<!-- Estado de error -->
+<div *ngIf="error && !isLoading" class="error-container">
+  <div class="error-content">
+    <svg xmlns="http://www.w3.org/2000/svg" class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="15" y1="9" x2="9" y2="15"></line>
+      <line x1="9" y1="9" x2="15" y2="15"></line>
+    </svg>
+    <h2>Error al cargar el curso</h2>
+    <p>{{ error }}</p>
+    <button class="btn-primary" (click)="loadCourseData()">Reintentar</button>
+  </div>
+</div>
+
+<!-- Contenido del curso -->
+<div *ngIf="course && !isLoading && !error" class="details-container">
+  <div class="details-header">
+    <div class="header-content">
+      <div class="course-status">
+        <span class="status-badge" [class]="'status-' + course.status">
+          {{ getStatusLabel(course.status) }}
+        </span>
+        <span class="last-updated">Última actualización {{ course.lastUpdated | date:'mediumDate' }}</span>
+      </div>
+      <h1>{{ course.title }}</h1>
+      <p class="subtitle">{{ course.description }}</p>
+      <div class="course-meta">
+        <span class="meta-item">
+          <svg xmlns="http://www.w3.org/2000/svg" class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+            <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+          </svg>
+          {{ course.category }}
+        </span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a [routerLink]="['/instructor/courses', course.id, 'students']" class="btn-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        Administrar Estudiantes
+      </a>
+      <a [routerLink]="['/instructor/courses', course.id, 'edit']" class="btn-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+        Editar Curso
+      </a>
+      <button class="btn-primary" 
+              [disabled]="isTogglingPublish" 
+              (click)="togglePublish()">
+        <svg *ngIf="!isTogglingPublish" xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+        </svg>
+        {{ isTogglingPublish ? 'Procesando...' : (course.status === 'published' ? 'Despublicar' : 'Publicar') }}
+      </button>
+    </div>
+  </div>
+
+  <div class="details-content">
+    <div class="content-section">
+      <h2>Resumen del Curso</h2>
+      <div class="overview-grid">
+        <div class="overview-card">
+          <h3>Objetivos de Aprendizaje</h3>
+          <ul class="objectives-list">
+            <li *ngFor="let objective of course.objectives?.split('\n')">
+              {{ objective }}
+            </li>
+          </ul>
+        </div>
+        <div class="overview-card">
+          <h3>Prerrequisitos</h3>
+          <ul class="prerequisites-list">
+            <li *ngFor="let prerequisite of course.prerequisites?.split('\n')">
+              {{ prerequisite }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-section">
+      <div class="section-header">
+        <h2>Contenido del Curso</h2>
+        <div class="section-actions">
+          <button class="btn-secondary" (click)="refreshModules()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Recargar Módulos
+          </button>
+          <button class="btn-secondary" (click)="openAddModuleModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Agregar Módulo
+          </button>
+        </div>
+      </div>
+      <div class="modules-list">
+        <!-- Loading indicator -->
+        <div class="loading-indicator" *ngIf="isLoadingModules">
+          <div class="spinner"></div>
+          <span>Cargando módulos...</span>
+        </div>
+
+        <ng-container *ngIf="!isLoadingModules">
+          <ng-container *ngIf="modules.length > 0; else emptyModules">
+            <app-module-card
+              *ngFor="let module of modules"
+              [module]="module"
+              [showActions]="true"
+              [isEditable]="true"
+              (editModule)="onEditModule($event)"
+              (deleteModule)="onDeleteModule($event)"
+              (viewModule)="onViewModule($event)">
+            </app-module-card>
+          </ng-container>
+          
+          <ng-template #emptyModules>
+            <div class="empty-state">
+              <div class="empty-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+                  <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+                </svg>
+              </div>
+              <h3>Aún No Hay Módulos</h3>
+              <p>Comienza agregando módulos para estructurar el contenido de tu curso</p>
+              <button class="btn-primary" (click)="openAddModuleModal()">Agrega Tu Primer Módulo</button>
+            </div>
+          </ng-template>
+
+        </ng-container>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="pagination-controls" *ngIf="modules.length > 0">
+        <div class="pagination-info">
+          <span>Mostrando {{ modules.length }} módulos</span>
+          <span class="page-indicator" *ngIf="currentModulePageIndex >= 0">
+            Página {{ currentModulePageIndex + 1 }}
+          </span>
+        </div>
+        
+        <div class="pagination-buttons">
+          <button 
+            class="btn-pagination" 
+            (click)="loadPreviousModulePage()" 
+            [disabled]="isLoadingModules || !canGoBackModule()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 18l-6-6 6-6"></path>
+            </svg>
+            Anterior
+          </button>
+          
+          <button 
+            class="btn-pagination" 
+            (click)="loadNextModulePage()" 
+            [disabled]="isLoadingModules || !hasNextModule">
+            Siguiente
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 18l6-6-6-6"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+                     <!-- Module Modal -->
+        <app-module-modal
+          [isOpen]="showAddModuleModal"
+          [isLoading]="isSubmittingModule"
+          mode="create"
+          [courseId]="courseId"
+          (closeModal)="closeAddModuleModal()"
+          (submitModule)="handleModuleSubmit($event)">
+        </app-module-modal>
+
+        <!-- Edit Module Modal -->
+         <app-module-modal
+           [isOpen]="showEditModuleModal"
+           [isLoading]="isUpdatingModule"
+           mode="edit"
+           [module]="selectedModule"
+           [courseId]="courseId"
+           (closeModal)="closeEditModuleModal()"
+           (submitModule)="handleModuleUpdate($event)">
+         </app-module-modal>
+    </div>
+
+    <div class="content-section">
+      <div class="section-header">
+        <h2>Progreso de Estudiantes</h2>
+      </div>
+
+      <!-- Estado de carga de estadísticas -->
+      <div *ngIf="isLoadingStats" class="stats-loading">
+        <div class="loading-spinner"></div>
+        <p>Cargando estadísticas...</p>
+      </div>
+
+      <!-- Estado de error de estadísticas -->
+      <div *ngIf="statsError && !isLoadingStats" class="stats-error">
+        <div class="error-content">
+          <svg xmlns="http://www.w3.org/2000/svg" class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+          <p>{{ statsError }}</p>
+          <button class="btn-secondary" (click)="refreshStats()">Reintentar</button>
+        </div>
+      </div>
+
+      <!-- Estadísticas del curso -->
+      <div *ngIf="courseStats && !isLoadingStats && !statsError" class="progress-stats">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <h3>Total de Estudiantes</h3>
+            <p class="stat-value">{{ courseStats.totalStudents }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <h3>Progreso Promedio</h3>
+            <p class="stat-value">{{ courseStats.completionRate }}%</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="students-list">
+        <!-- Loading indicator -->
+        <div class="loading-indicator" *ngIf="isLoadingStudentProgress">
+          <div class="spinner"></div>
+          <span>Cargando progreso de estudiantes...</span>
+        </div>
+
+        <ng-container *ngIf="!isLoadingStudentProgress">
+          <!-- Lista de estudiantes con progreso -->
+          <ng-container *ngIf="studentProgress.length > 0; else emptyStudents">
+            <div class="students-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Estudiante</th>
+                    <th>Teléfono</th>
+                    <th>Progreso</th>
+                    <th>Módulos Completados</th>
+                    <th>Fecha de Inscripción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let student of studentProgress">
+                    <td>
+                      <div class="student-info">
+                        <span class="student-name">{{ student.studentName }}</span>
+                      </div>
+                    </td>
+                    <td>{{ student.phoneNumber }}</td>
+                    <td>
+                      <div class="progress-container">
+                        <div class="progress-bar">
+                          <div class="progress-fill" [style.width.%]="student.completionPercentage"></div>
+                        </div>
+                        <span class="progress-text">{{ student.completionPercentage }}%</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="modules-completed">
+                        {{ student.completedModules }} / {{ student.totalModules }}
+                      </span>
+                    </td>
+                    <td>{{ student.enrolledAt | date:'mediumDate' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </ng-container>
+
+          <!-- Empty state -->
+          <ng-template #emptyStudents>
+            <div class="empty-state">
+              <div class="empty-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+              <h3>Aún No Hay Estudiantes</h3>
+              <p>Los estudiantes aparecerán aquí una vez que se inscriban en tu curso</p>
+            </div>
+          </ng-template>
+        </ng-container>
+
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="pagination-controls" *ngIf="studentProgress.length > 0">
+        <div class="pagination-info">
+          <span>Mostrando {{ studentProgress.length }} estudiantes</span>
+          <span class="page-indicator">
+            Página {{ currentStudentPage }}
+          </span>
+        </div>
+        
+        <div class="pagination-buttons">
+          <button 
+            class="btn-pagination" 
+            (click)="loadPreviousStudentPage()" 
+            [disabled]="isLoadingStudentProgress || !hasPrevStudent">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 18l-6-6 6-6"></path>
+            </svg>
+            Anterior
+          </button>
+          
+          <button 
+            class="btn-pagination" 
+            (click)="loadNextStudentPage()" 
+            [disabled]="isLoadingStudentProgress || !hasNextStudent">
+            Siguiente
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 18l6-6-6-6"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</div>

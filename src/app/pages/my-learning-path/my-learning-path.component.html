@@ -1,0 +1,116 @@
+<app-navbar></app-navbar>
+
+<div class="learning-path-container">
+  <div class="path-header">
+    <div class="header-content">
+      <h1>Mi Ruta de Aprendizaje</h1>
+      <p class="subtitle">Rastrea tu progreso y continúa tu viaje de aprendizaje</p>
+    </div>
+  </div>
+
+  <div class="path-stats">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+          <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <h3>Cursos Activos</h3>
+        <p class="stat-value">{{ activeCourses }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <h3>Progreso Promedio</h3>
+        <p class="stat-value">{{ averageProgress }}%</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <h3>Horas de Aprendizaje</h3>
+        <p class="stat-value">{{ learningHours }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="path-content">
+    <div class="section-header">
+      <h2>Ruta de Aprendizaje Actual</h2>
+      <div class="section-actions">
+        <button class="filter-btn" (click)="toggleFilterMenu()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+          Filtrar
+        </button>
+        <button class="sort-btn" (click)="toggleSortMenu()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 6h18"></path>
+            <path d="M7 12h10"></path>
+            <path d="M10 18h4"></path>
+          </svg>
+          Ordenar
+        </button>
+      </div>
+    </div>
+
+    <div class="learning-paths-list">
+      <ng-container *ngIf="learningPaths.length > 0; else emptyLearningPaths">
+        <!-- Learning paths list will be implemented here -->
+      </ng-container>
+      <ng-template #emptyLearningPaths>
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+              <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+            </svg>
+          </div>
+          <h3>Aún No Hay Rutas de Aprendizaje</h3>
+          <p>Comienza tu viaje de aprendizaje inscribiéndote en cursos</p>
+          <a routerLink="/courses" class="btn-gradient">Explorar Cursos</a>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+
+  <div class="path-content">
+    <div class="section-header">
+      <h2>Rutas Recomendadas</h2>
+      <p class="section-subtitle">Basado en tus intereses y objetivos</p>
+    </div>
+
+    <div class="recommended-paths">
+      <ng-container *ngIf="recommendedPaths.length > 0; else emptyRecommendedPaths">
+        <!-- Recommended paths list will be implemented here -->
+      </ng-container>
+      <ng-template #emptyRecommendedPaths>
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+              <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+            </svg>
+          </div>
+          <h3>Completa Tu Perfil</h3>
+          <p>Agrega tus intereses y objetivos para obtener recomendaciones personalizadas</p>
+          <a routerLink="/profile" class="btn-gradient">Actualizar Perfil</a>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div> 

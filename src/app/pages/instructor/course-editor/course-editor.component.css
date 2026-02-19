@@ -1,0 +1,399 @@
+.editor-container {
+  min-height: calc(100vh - 64px);
+  padding: 2rem;
+  background: linear-gradient(135deg, #f0f4ff 0%, #f5f3ff 100%);
+}
+
+.editor-header {
+  max-width: 800px;
+  margin: 0 auto 2rem;
+}
+
+.header-content h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: -1px;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 1.1rem;
+}
+
+.editor-form {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.form-section {
+  margin-bottom: 2.5rem;
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+}
+
+.form-section h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #1e293b;
+  transition: all 0.2s;
+  background: #f8fafc;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+input.error,
+select.error,
+textarea.error {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+input.error:focus,
+select.error:focus,
+textarea.error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* Image upload styles */
+.image-upload-container {
+  margin-top: 0.5rem;
+}
+
+.image-upload-area {
+  position: relative;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #f8fafc;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-upload-area:hover {
+  border-color: #2563eb;
+  background: #f0f4ff;
+}
+
+.image-upload-area.drag-over {
+  border-color: #2563eb;
+  background: #f0f4ff;
+  transform: scale(1.02);
+}
+
+.image-upload-area.has-image {
+  border-style: solid;
+  border-color: #2563eb;
+  background: white;
+  padding: 0;
+  min-height: 250px;
+}
+
+.image-upload-area.error {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.upload-icon {
+  width: 48px;
+  height: 48px;
+  color: #64748b;
+}
+
+.upload-text {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #374151;
+  margin: 0;
+}
+
+.upload-hint {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.image-preview {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.image-preview:hover .image-overlay {
+  opacity: 1;
+}
+
+.btn-change-image,
+.btn-remove-image {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  text-decoration: none;
+}
+
+.btn-change-image {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-change-image:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.btn-remove-image {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-remove-image:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.upload-info {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.file-name {
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 0.25rem 0;
+  font-size: 0.875rem;
+}
+
+.file-size {
+  color: #64748b;
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+.upload-progress {
+  margin-top: 1rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  text-align: center;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e2e8f0;
+}
+
+.btn-secondary,
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary {
+  background: #f8fafc;
+  color: #64748b;
+  border: 2px solid #e2e8f0;
+  text-decoration: none;
+}
+
+.btn-secondary:hover {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 768px) {
+  .editor-container {
+    padding: 1.5rem;
+  }
+
+  .editor-header h1 {
+    font-size: 2rem;
+  }
+
+  .editor-form {
+    padding: 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .editor-container {
+    padding: 1rem;
+  }
+
+  .editor-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .editor-form {
+    padding: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .btn-secondary,
+  .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+} 

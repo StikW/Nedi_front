@@ -1,0 +1,72 @@
+/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --font-family-base: 'Segoe UI', 'Inter', Arial, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #1e293b;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-base);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: var(--font-family-base);
+}
+
+input, textarea, select {
+  font-family: var(--font-family-base);
+}
+
+/* Common utility classes */
+.btn-gradient {
+  background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
+  color: #fff;
+  border: none;
+}
+
+.btn-gradient:hover {
+  background: linear-gradient(90deg, #1d4ed8 0%, #6d28d9 100%);
+}
+
+.btn-primary {
+  background: #fff;
+  color: #2563eb;
+  border: 2px solid #2563eb;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* Common transitions */
+.btn, .card, .nav-link, .featured-card, .course-card {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Common hover effects */
+.btn:hover, .card:hover, .featured-card:hover, .course-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(60, 60, 120, 0.15);
+}

@@ -1,0 +1,75 @@
+<nav class="navbar">
+  <div class="navbar-container">
+    <a routerLink="/" class="navbar-logo">THAgent</a>
+    <button class="navbar-toggle" (click)="showMenu = !showMenu" aria-label="Alternar menú">
+      <span class="navbar-toggle-bar"></span>
+      <span class="navbar-toggle-bar"></span>
+      <span class="navbar-toggle-bar"></span>
+    </button>
+    <div class="navbar-links" [class.active]="showMenu">
+      <!-- Estado logueado -->
+      <ng-container *ngIf="currentUser">
+        <div class="user-menu">
+          <button class="user-menu-btn" (click)="showMenu = !showMenu">
+            <div class="user-avatar">
+              {{ getInitials(currentUser.name) }}
+            </div>
+            <span class="user-name">{{ currentUser.name }}</span>
+          </button>
+          <div class="user-dropdown" [class.active]="showMenu">
+            <a routerLink="/profile" class="dropdown-item">
+              <svg xmlns="http://www.w3.org/2000/svg" class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              Mi Perfil
+            </a>
+            <!-- Panel según el rol del usuario -->
+            <ng-container *ngIf="currentUser?.role === 'admin'">
+              <a routerLink="/admin" class="dropdown-item">
+                <svg xmlns="http://www.w3.org/2000/svg" class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+                Panel de Admin
+              </a>
+            </ng-container>
+            
+            <ng-container *ngIf="currentUser?.role === 'instructor'">
+              <a routerLink="/instructor" class="dropdown-item">
+                <svg xmlns="http://www.w3.org/2000/svg" class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+                  <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"></path>
+                </svg>
+                Panel del Instructor
+              </a>
+            </ng-container>
+            
+            <ng-container *ngIf="currentUser?.role === 'student'">
+              <a routerLink="/my-learning-path" class="dropdown-item">
+                <svg xmlns="http://www.w3.org/2000/svg" class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+                Mi Ruta de Aprendizaje
+              </a>
+            </ng-container>
+            <button (click)="logout()" class="dropdown-item">
+              <svg xmlns="http://www.w3.org/2000/svg" class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              Cerrar Sesión
+            </button>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Estado no logueado -->
+      <ng-container *ngIf="!currentUser">
+        <a routerLink="/login" class="navbar-btn btn-primary">Iniciar Sesión</a>
+        <a routerLink="/register" class="navbar-btn btn-gradient">Registrarse</a>
+      </ng-container>
+    </div>
+  </div>
+</nav> 

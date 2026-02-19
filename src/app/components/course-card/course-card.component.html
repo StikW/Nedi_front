@@ -1,0 +1,16 @@
+<div class="course-card">
+  <div class="course-image">
+    <img [src]="course.imageUrl" [alt]="course.title">
+    <span class="level-badge" [ngClass]="getLevelClass()">{{ getLevelLabel() }}</span>
+  </div>
+  <div class="course-content">
+    <h3 class="course-title">{{ course.title }}</h3>
+    <p class="course-description">{{ course.description }}</p>
+    <div class="course-meta">
+      <span class="course-category">{{ course.category }}</span>
+    </div>
+    <div class="course-footer">
+      <a [routerLink]="['/courses', course.id]" class="view-course-btn">Ver Curso</a>
+    </div>
+  </div>
+</div> 
