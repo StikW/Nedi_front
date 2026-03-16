@@ -1,5 +1,5 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://thagent.online/api',
+    apiUrl: 'https://tututor.co/api',
     apiVersion: 'v1'
   };

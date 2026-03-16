@@ -44,8 +44,29 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "10kB",
-                  "maximumError": "15kB"
+                  "maximumWarning": "20kB",
+                  "maximumError": "20kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "dev": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                }
+              ],
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "20kB",
+                  "maximumError": "20kB"
                 }
               ],
               "outputHashing": "all"
@@ -63,6 +84,9 @@
           "configurations": {
             "production": {
               "buildTarget": "ia-learning:build:production"
+            },
+            "dev": {
+              "buildTarget": "ia-learning:build:dev"
             },
             "development": {
               "buildTarget": "ia-learning:build:development"

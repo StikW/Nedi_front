@@ -459,6 +459,37 @@
   font-size: 0.9rem;
 }
 
+// Columna "Vs promedio" en la tabla de progreso
+.th-vs-promedio {
+  white-space: nowrap;
+}
+
+.td-vs-promedio {
+  white-space: nowrap;
+}
+
+.vs-promedio {
+  font-weight: 600;
+  font-size: 0.875rem;
+
+  &.vs-above {
+    color: #059669;
+  }
+
+  &.vs-below {
+    color: #dc2626;
+  }
+
+  &.vs-same {
+    color: common.$text-muted;
+  }
+
+  &.vs-na {
+    color: common.$text-muted;
+    font-weight: 400;
+  }
+}
+
 // Responsive design for student table
 @include common.mobile {
   .students-table {
@@ -693,4 +724,507 @@
     justify-content: center;
     padding: 0.625rem 1rem;
   }
+}
+
+// Botón volver a la lista de cursos (header)
+.btn-back-courses {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: common.$bg-light;
+  border: 1px solid common.$border-color;
+  border-radius: 8px;
+  color: common.$text-muted;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  .btn-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #cbd5e1;
+  }
+}
+
+// Botón Métricas avanzadas (header)
+.btn-metrics {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+
+  .btn-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    transform: translateY(-1px);
+  }
+
+  &.active {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    box-shadow: 0 2px 10px rgba(79, 70, 229, 0.5);
+  }
+}
+
+// Dashboard de métricas avanzadas
+.advanced-metrics-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 0 3rem;
+}
+
+.metrics-dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    background: common.$primary-gradient;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin: 0;
+  }
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: common.$bg-light;
+  border: 1px solid common.$border-color;
+  border-radius: 8px;
+  color: common.$text-muted;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #cbd5e1;
+  }
+}
+
+.metrics-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: common.$text-muted;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.metrics-kpis {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.kpi-card {
+  background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .kpi-label {
+    font-size: 0.8rem;
+    color: common.$text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .kpi-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: common.$text-primary;
+
+    &.kpi-percent {
+      color: #2563eb;
+    }
+  }
+}
+
+.metric-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: common.$text-primary;
+    margin: 0 0 0.5rem 0;
+  }
+}
+
+.chart-subtitle {
+  font-size: 0.8rem;
+  color: common.$text-muted;
+  margin: 0 0 1rem 0;
+}
+
+.chart-card {
+  grid-column: span 2;
+}
+
+.gauge-card {
+  grid-column: span 2;
+}
+
+.comparison-chart-card {
+  grid-column: span 2;
+}
+
+.top-students-card {
+  grid-column: span 2;
+}
+
+.modules-card {
+  grid-column: span 2;
+}
+
+.logins-card {
+  grid-column: span 2;
+}
+
+@media (max-width: 1024px) {
+  .chart-card,
+  .gauge-card,
+  .comparison-chart-card,
+  .top-students-card,
+  .modules-card,
+  .logins-card {
+    grid-column: span 1;
+  }
+}
+
+// Comparativa de avance (todos a escala 0-100%)
+.comparison-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.comparison-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.comparison-name {
+  color: common.$text-primary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comparison-scale {
+  position: relative;
+  height: 22px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.comparison-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%);
+  border-radius: 6px;
+  transition: width 0.4s ease;
+  min-width: 2px;
+}
+
+.comparison-pct {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1e293b;
+  text-shadow: 0 0 2px #fff;
+  pointer-events: none;
+}
+
+// Gráfico de barras (distribución)
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 40px;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.bar-label {
+  color: common.$text-muted;
+  font-weight: 500;
+}
+
+.bar-track {
+  height: 24px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%);
+  border-radius: 6px;
+  min-width: 4px;
+  transition: width 0.4s ease;
+}
+
+.bar-value {
+  text-align: right;
+  font-weight: 700;
+  color: common.$text-primary;
+}
+
+// Gauge (semi-circular)
+.gauge-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.gauge-semi {
+  --progress: 0;
+  width: 180px;
+  height: 90px;
+  position: relative;
+  overflow: hidden;
+}
+
+.gauge-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: conic-gradient(
+    #4f46e5 0deg,
+    #6366f1 calc(var(--progress) * 180deg),
+    #e2e8f0 calc(var(--progress) * 180deg),
+    #e2e8f0 180deg
+  );
+  border-radius: 90px 90px 0 0;
+  transform: rotate(-90deg);
+  transform-origin: center bottom;
+}
+
+.gauge-value {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: common.$text-primary;
+  z-index: 1;
+}
+
+// Top estudiantes (barras horizontales)
+.top-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.top-row {
+  display: grid;
+  grid-template-columns: 32px 1fr 120px 50px;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.top-rank {
+  font-weight: 700;
+  color: common.$text-muted;
+}
+
+.top-name {
+  color: common.$text-primary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-bar-wrap {
+  height: 20px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.top-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+.top-pct {
+  text-align: right;
+  font-weight: 600;
+  color: #059669;
+}
+
+.no-data {
+  color: common.$text-muted;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+// Mini barras (módulos por estudiante)
+.mini-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mini-bar-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.mini-bar-label {
+  color: common.$text-muted;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-bar-track {
+  height: 16px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mini-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+// Contador de ingresos por estudiante (Métricas avanzadas)
+.logins-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 280px;
+  overflow-y: auto;
+  margin-bottom: 0.75rem;
+}
+
+.logins-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.logins-name {
+  color: common.$text-primary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.logins-count {
+  font-weight: 700;
+  color: common.$text-muted;
+  text-align: right;
+
+  &.logins-count--available {
+    color: #2563eb;
+  }
+}
+
+.logins-date {
+  font-size: 0.8rem;
+  color: common.$text-muted;
+  white-space: nowrap;
+}
+
+.metrics-empty {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: common.$text-muted;
+  font-size: 1rem;
 } 

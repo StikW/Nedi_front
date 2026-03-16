@@ -68,6 +68,9 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
   isLoadingStudentProgress: boolean = false;
   studentSortOrder: 'asc' | 'desc' = 'desc';
 
+  // Vista de métricas avanzadas
+  showAdvancedMetrics = false;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -327,7 +330,7 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
           // Crear array de recursos con las URLs de los archivos subidos
           const resources: ModuleResource[] = uploadResults.map((result, index) => ({
             name: files[index].name,
-            url: "https://ai-learning-donbodegon-resources.s3.amazonaws.com/" + result.fileKey || '',
+            url: "https://ai-nedi-learning-resources.s3.amazonaws.com/" + result.fileKey || '',
             size: files[index].size
           }));
 
@@ -466,7 +469,7 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
         // Crear array de recursos con las URLs de los archivos subidos
         const newResources: ModuleResource[] = uploadResults.map((result, index) => ({
           name: files[index].name,
-          url: "https://ai-learning-donbodegon-resources.s3.amazonaws.com/" + result.fileKey || '',
+          url: "https://ai-nedi-learning-resources.s3.amazonaws.com/" + result.fileKey || '',
           size: files[index].size
         }));
 
@@ -668,6 +671,70 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
       this.studentSortOrder = newOrder;
       this.loadStudentProgress();
     }
+  }
+
+  toggleAdvancedMetrics(): void {
+    this.showAdvancedMetrics = !this.showAdvancedMetrics;
+  }
+
+  /** Distribución de estudiantes por rango de progreso (para gráfico de barras) */
+  get distributionBuckets(): { label: string; count: number; percent: number }[] {
+    const buckets = [
+      { label: '0-25%', min: 0, max: 25, count: 0 },
+      { label: '25-50%', min: 25, max: 50, count: 0 },
+      { label: '50-75%', min: 50, max: 75, count: 0 },
+      { label: '75-100%', min: 75, max: 101, count: 0 },
+    ];
+    for (const s of this.studentProgress) {
+      const p = s.completionPercentage;
+      const b = buckets.find((x) => p >= x.min && p < x.max);
+      if (b) b.count++;
+    }
+    const total = this.studentProgress.length || 1;
+    return buckets.map((b) => ({
+      label: b.label,
+      count: b.count,
+      percent: total ? (b.count / total) * 100 : 0,
+    }));
+  }
+
+  /** Top estudiantes ordenados por porcentaje de completado */
+  get topStudentsByProgress(): StudentProgress[] {
+    return [...this.studentProgress]
+      .sort((a, b) => b.completionPercentage - a.completionPercentage)
+      .slice(0, 10);
+  }
+
+  /** Cantidad de estudiantes que completaron el 100% */
+  get completedCount(): number {
+    return this.studentProgress.filter((s) => s.completionPercentage >= 100).length;
+  }
+
+  /** Promedio de módulos completados por estudiante */
+  get avgModulesCompleted(): number {
+    if (this.studentProgress.length === 0) return 0;
+    const sum = this.studentProgress.reduce((acc, s) => acc + s.completedModules, 0);
+    return sum / this.studentProgress.length;
+  }
+
+  /** Lista de estudiantes ordenada por progreso (desc) para el gráfico comparativo */
+  get studentProgressSortedByProgress(): StudentProgress[] {
+    return [...this.studentProgress].sort((a, b) => b.completionPercentage - a.completionPercentage);
+  }
+
+  /** Diferencia vs promedio del curso (positivo = por encima, negativo = por debajo). Null si no hay promedio. */
+  getVsPromedio(student: StudentProgress): number | null {
+    const avg = this.courseStats?.completionRate;
+    if (avg == null) return null;
+    return Math.round(student.completionPercentage - avg);
+  }
+
+  /** Veces que el estudiante ingresó al sistema. Null si el backend aún no envía loginCount. */
+  getLoginCount(student: StudentProgress): number | null {
+    if (student.loginCount != null && typeof student.loginCount === 'number') {
+      return student.loginCount;
+    }
+    return null;
   }
 
   // Event handlers for module-card component

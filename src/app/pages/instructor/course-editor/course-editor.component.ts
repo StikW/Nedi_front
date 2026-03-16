@@ -424,7 +424,7 @@ export class CourseEditorComponent implements OnInit {
             if (result.progress.percentage === 100 && result.fileKey) {
               this.isUploading = false;
               // Construir la URL final usando la fileKey
-              const imageUrl = `https://ai-learning-donbodegon-resources.s3.amazonaws.com/${result.fileKey}`;
+              const imageUrl = `https://ai-nedi-learning-resources.s3.amazonaws.com/${result.fileKey}`;
               console.log('✅ Imagen subida exitosamente:', imageUrl);
               resolve(imageUrl);
             }

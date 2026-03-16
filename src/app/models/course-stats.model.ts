@@ -7,6 +7,10 @@ export interface StudentProgress {
   totalModules: number;
   enrolledAt: string;
   lastCompletedAt?: string;
+  /** Veces que el estudiante ha ingresado al sistema */
+  loginCount?: number;
+  /** Fecha de la última vez que ingresó (updatedAt del estudiante) */
+  lastAccessAt?: string;
 }
 
 export interface CourseStats {
