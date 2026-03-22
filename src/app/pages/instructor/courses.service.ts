@@ -3,6 +3,16 @@ import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, tap } from 'rxjs/operators';
 import { InstructorCourse, CourseStatus } from '../../models/course.model';
+
+/** Curso público para página de registro (sin auth) */
+export interface PublicCoursePreview {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  category: string;
+  objectives: string;
+}
 import { Module } from '../../models/module.model';
 import { CourseStats, StudentProgressResponse } from '../../models/course-stats.model';
 import { InstructorStats } from '../../models/instructor-stats.model';
@@ -454,6 +464,19 @@ export class CoursesService {
         console.error('❌ Error obteniendo progreso de estudiantes:', error);
         return throwError(() => new Error('Error al cargar el progreso de estudiantes'));
       })
+    );
+  }
+
+  /** Vista previa del curso para registro público (sin token) */
+  getPublicCoursePreview(courseId: string): Observable<PublicCoursePreview> {
+    return this.http.get<PublicCoursePreview>(`${this.apiUrl}/public/courses/${courseId}/preview`);
+  }
+
+  /** Inscripción pública a un curso publicado y con visibilidad pública */
+  publicEnroll(courseId: string, body: { name: string; phoneNumber: string }): Observable<{ id: string; name: string; phoneNumber: string; courseId: string }> {
+    return this.http.post<{ id: string; name: string; phoneNumber: string; courseId: string }>(
+      `${this.apiUrl}/public/courses/${courseId}/enroll`,
+      body
     );
   }
 } 

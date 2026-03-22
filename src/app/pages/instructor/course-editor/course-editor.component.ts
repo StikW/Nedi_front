@@ -5,7 +5,7 @@ import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { NavbarComponent } from '../../../components/navbar/navbar.component';
 import { CoursesService } from '../courses.service';
 import { UploadsService, UploadProgress } from '../../../core/services/uploads.service';
-import { InstructorCourse, CourseStatus } from '../../../models/course.model';
+import { InstructorCourse, CourseStatus, CourseVisibility } from '../../../models/course.model';
 
 @Component({
   selector: 'app-course-editor',
@@ -56,7 +56,9 @@ export class CourseEditorComponent implements OnInit {
       category: ['', Validators.required],
       imageUrl: [''],
       objectives: ['', [Validators.required, Validators.minLength(20)]],
-      prerequisites: ['', Validators.minLength(10)]
+      prerequisites: ['', Validators.minLength(10)],
+      /** Público = enlace de registro; privado = solo registro manual */
+      visibility: ['private' as CourseVisibility]
     });
   }
 
@@ -75,7 +77,10 @@ export class CourseEditorComponent implements OnInit {
     if (this.isEditing && this.courseId) {
       this.coursesService.getCourseById(this.courseId).subscribe(course => {
         if (course) {
-          this.courseForm.patchValue(course);
+          this.courseForm.patchValue({
+            ...course,
+            visibility: course.visibility ?? 'private'
+          });
           
           // Si el curso tiene una imagen existente, configurar las propiedades de vista previa
           if (course.imageUrl) {

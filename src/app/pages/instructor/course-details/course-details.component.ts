@@ -13,6 +13,11 @@ import { CourseStats, StudentProgress, StudentProgressResponse } from '../../../
 import { PaginatedResponse } from '../../../models/paginated-response.model';
 import { CoursesService } from '../courses.service';
 import { UploadsService } from '../../../core/services/uploads.service';
+import { environment } from '../../../../environments/environment';
+
+function effectiveCourseVisibility(course: InstructorCourse): 'public' | 'private' {
+  return course.visibility === 'public' ? 'public' : 'private';
+}
 
 @Component({
   selector: 'app-course-details',
@@ -29,6 +34,7 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
   isLoading = true;
   error: string | null = null;
   isTogglingPublish = false;
+  shareCopied = false;
 
 
 
@@ -135,6 +141,29 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Enlace público de inscripción (solo cursos públicos publicados); usa `environment.publicAppUrl` (tututor.co), no localhost */
+  get publicJoinLink(): string {
+    if (!this.course?.id) return '';
+    const base = environment.publicAppUrl.replace(/\/$/, '');
+    return `${base}/join/${this.course.id}`;
+  }
+
+  get showShareButton(): boolean {
+    return (
+      this.course?.visibility === 'public' &&
+      this.course?.status === 'published'
+    );
+  }
+
+  copyShareLink(): void {
+    const url = this.publicJoinLink;
+    if (!url) return;
+    navigator.clipboard.writeText(url).then(() => {
+      this.shareCopied = true;
+      setTimeout(() => (this.shareCopied = false), 2500);
+    });
+  }
+
   getStatusLabel(status: CourseStatus): string {
     const statusLabels: Record<CourseStatus, string> = {
       'draft': 'Borrador',
@@ -142,6 +171,14 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
       'archived': 'Archivado'
     };
     return statusLabels[status] || status;
+  }
+
+  getVisibilityLabel(course: InstructorCourse): string {
+    return effectiveCourseVisibility(course) === 'public' ? 'Público' : 'Privado';
+  }
+
+  visibilityBadgeClass(course: InstructorCourse): string {
+    return effectiveCourseVisibility(course) === 'public' ? 'visibility-public' : 'visibility-private';
   }
 
   togglePublish() {

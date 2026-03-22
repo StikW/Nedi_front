@@ -1,0 +1,47 @@
+<div class="join-page">
+  <div class="join-card" *ngIf="isLoading">
+    <p>Cargando curso...</p>
+  </div>
+
+  <div class="join-card error" *ngIf="!isLoading && error && !preview">
+    <h1>No disponible</h1>
+    <p>{{ error }}</p>
+    <a routerLink="/" class="btn-link">Ir al inicio</a>
+  </div>
+
+  <div class="join-card success" *ngIf="success && preview">
+    <h1>¡Listo!</h1>
+    <p>Te has registrado en <strong>{{ preview.title }}</strong>.</p>
+    <p class="hint">El instructor te contactará o recibirás más instrucciones por el canal del curso.</p>
+    <a routerLink="/" class="btn-link">Ir al inicio</a>
+  </div>
+
+  <ng-container *ngIf="preview && !success">
+    <div class="join-hero" *ngIf="preview.imageUrl">
+      <img [src]="preview.imageUrl" [alt]="preview.title" />
+    </div>
+    <div class="join-card">
+      <h1>{{ preview.title }}</h1>
+      <p class="description">{{ preview.description }}</p>
+
+      <div class="inline-error" *ngIf="error && preview">
+        {{ error }}
+      </div>
+
+      <h2>Registrarme en el curso</h2>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <label>
+          Nombre completo
+          <input type="text" formControlName="name" placeholder="Tu nombre" autocomplete="name" />
+        </label>
+        <label>
+          Teléfono (con código de país)
+          <input type="tel" formControlName="phoneNumber" placeholder="+573001234567" autocomplete="tel" />
+        </label>
+        <button type="submit" class="btn-submit" [disabled]="isSubmitting || form.invalid">
+          {{ isSubmitting ? 'Enviando...' : 'Registrarme' }}
+        </button>
+      </form>
+    </div>
+  </ng-container>
+</div>

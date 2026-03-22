@@ -56,6 +56,21 @@
           {{ getFieldError('category') }}
         </div>
       </div>
+
+      <div class="form-group visibility-group">
+        <span class="group-label">Visibilidad del curso</span>
+        <p class="field-hint">Los cursos <strong>públicos</strong> permiten compartir un enlace para que las personas se registren solas. Los <strong>privados</strong> solo permiten inscribir estudiantes manualmente.</p>
+        <div class="radio-row">
+          <label class="radio-option">
+            <input type="radio" formControlName="visibility" value="private" />
+            <span>Privado (solo registro manual)</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" formControlName="visibility" value="public" />
+            <span>Público (enlace de registro al publicar)</span>
+          </label>
+        </div>
+      </div>
     </div>
 
     <div class="form-section">

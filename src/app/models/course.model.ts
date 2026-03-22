@@ -1,5 +1,7 @@
 export type CourseLevel = 'beginner' | 'intermediate' | 'advanced';
 export type CourseStatus = 'draft' | 'published' | 'archived';
+/** Curso público: enlace de registro; privado: solo registro manual por instructor */
+export type CourseVisibility = 'public' | 'private';
 export type CourseProgressStatus = 'not_started' | 'in_progress' | 'completed';
 
 export interface BaseCourse {
@@ -20,6 +22,8 @@ export interface InstructorCourse extends BaseCourse {
   students: number;
   objectives: string;
   prerequisites: string;
+  /** public = enlace de registro; private = solo manual */
+  visibility?: CourseVisibility;
 }
 
 export interface StudentCourse extends BaseCourse {

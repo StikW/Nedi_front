@@ -28,6 +28,9 @@
         <span class="status-badge" [class]="'status-' + course.status">
           {{ getStatusLabel(course.status) }}
         </span>
+        <span class="visibility-badge" [ngClass]="visibilityBadgeClass(course)">
+          {{ getVisibilityLabel(course) }}
+        </span>
         <span class="last-updated">Última actualización {{ course.lastUpdated | date:'mediumDate' }}</span>
       </div>
       <h1>{{ course.title }}</h1>
@@ -49,6 +52,21 @@
         </svg>
         Volver a la lista de cursos
       </a>
+      <button
+        *ngIf="showShareButton"
+        type="button"
+        class="btn-share"
+        (click)="copyShareLink()"
+        [attr.title]="publicJoinLink">
+        <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+        {{ shareCopied ? '¡Enlace copiado!' : 'Compartir enlace de registro' }}
+      </button>
       <button type="button" class="btn-metrics" (click)="toggleAdvancedMetrics()" [class.active]="showAdvancedMetrics">
         <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="20" x2="18" y2="10"></line>

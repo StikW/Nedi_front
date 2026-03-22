@@ -21,6 +21,10 @@ export const routes: Routes = [
     canActivate: [NoAuthGuard]
   },
   {
+    path: 'join/:courseId',
+    loadComponent: () => import('./pages/public/join-course/join-course.component').then(m => m.JoinCourseComponent)
+  },
+  {
     path: 'courses',
     loadComponent: () => import('./pages/courses/courses.component').then(m => m.CoursesComponent),
     canActivate: [AuthGuard]
