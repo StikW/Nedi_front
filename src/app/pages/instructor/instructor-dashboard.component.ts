@@ -25,6 +25,17 @@ export class InstructorDashboardComponent implements OnInit, OnDestroy {
 
   // Courses
   courses: InstructorCourse[] = [];
+  deletingCourseId: string | null = null;
+
+  toastVisible = false;
+  toastType: 'success' | 'error' = 'success';
+  toastMessage = '';
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // Confirmación flotante para eliminar curso
+  confirmDeleteVisible = false;
+  confirmDeleteCourseId: string | null = null;
+  confirmDeleteCourseTitle = '';
 
   // Pagination
   currentCursor?: string;
@@ -179,19 +190,65 @@ export class InstructorDashboardComponent implements OnInit, OnDestroy {
 
   deleteCourse(courseId: string): void {
     const course = this.courses.find(c => c.id === courseId);
-    const courseTitle = course?.title || 'este curso';
-    
-    if (confirm(`¿Estás seguro de que quieres eliminar "${courseTitle}"? Esta acción no se puede deshacer.`)) {
-      this.coursesService.deleteCourse(courseId).subscribe({
-        next: () => {
-          // El servicio ya actualiza la lista automáticamente
-          console.log('Curso eliminado exitosamente');
-        },
-        error: (error) => {
-          console.error('Error eliminando curso:', error);
-          alert('Error al eliminar el curso. Por favor, inténtalo de nuevo.');
+    this.confirmDeleteCourseId = courseId;
+    this.confirmDeleteCourseTitle = course?.title || 'este curso';
+    this.confirmDeleteVisible = true;
+  }
+
+  cancelDelete(): void {
+    this.confirmDeleteVisible = false;
+    this.confirmDeleteCourseId = null;
+    this.confirmDeleteCourseTitle = '';
+  }
+
+  confirmDelete(): void {
+    if (!this.confirmDeleteCourseId) return;
+    const courseId = this.confirmDeleteCourseId;
+    const courseTitle = this.confirmDeleteCourseTitle || 'este curso';
+
+    this.confirmDeleteVisible = false;
+    this.deletingCourseId = courseId;
+
+    this.coursesService.deleteCourse(courseId).subscribe({
+      next: () => {
+        // Eliminar de la lista al confirmar el backend
+        this.courses = this.courses.filter(c => c.id !== courseId);
+        if (this.totalCourses > 0) {
+          this.totalCourses = this.totalCourses - 1;
         }
-      });
+
+        // Toast (autocierra a los 2s)
+        this.toastType = 'success';
+        this.toastMessage = `Curso "${courseTitle}" eliminado correctamente.`;
+        this.toastVisible = true;
+        if (this.toastTimer) {
+          clearTimeout(this.toastTimer);
+        }
+        this.toastTimer = setTimeout(() => this.closeToast(), 2000);
+        this.deletingCourseId = null;
+      },
+      error: (error) => {
+        console.error('Error eliminando curso:', error);
+        this.toastType = 'error';
+        this.toastMessage = 'No se pudo eliminar el curso. Por favor, inténtalo de nuevo.';
+        this.toastVisible = true;
+        if (this.toastTimer) {
+          clearTimeout(this.toastTimer);
+        }
+        this.toastTimer = setTimeout(() => this.closeToast(), 2000);
+        this.deletingCourseId = null;
+      }
+    });
+
+    this.confirmDeleteCourseId = null;
+    this.confirmDeleteCourseTitle = '';
+  }
+
+  closeToast(): void {
+    this.toastVisible = false;
+    if (this.toastTimer) {
+      clearTimeout(this.toastTimer);
+      this.toastTimer = null;
     }
   }
 } 

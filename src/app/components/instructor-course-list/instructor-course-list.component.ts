@@ -18,6 +18,7 @@ function effectiveVisibility(course: InstructorCourse): 'public' | 'private' {
 })
 export class InstructorCourseListComponent {
   @Input() courses: InstructorCourse[] = [];
+  @Input() deletingCourseId: string | null = null;
   @Output() deleteCourse = new EventEmitter<string>();
 
   /** ID del curso cuyo enlace se acaba de copiar (feedback visual) */
@@ -69,6 +70,9 @@ export class InstructorCourseListComponent {
   onDeleteCourse(event: Event, courseId: string): void {
     event.preventDefault();
     event.stopPropagation();
+    if (this.deletingCourseId === courseId) {
+      return;
+    }
     this.deleteCourse.emit(courseId);
   }
 } 
