@@ -33,8 +33,10 @@ export class CoursesService {
     private http: HttpClient,
     private authService: AuthService
   ) {
-    // Cargar cursos al inicializar el servicio
-    this.loadCourses();
+    // Solo precargar si hay sesión; si no, GET /courses devuelve 401 (p. ej. páginas públicas que inyectan este servicio)
+    if (this.authService.getAuthToken()) {
+      this.loadCourses();
+    }
   }
 
   /**
