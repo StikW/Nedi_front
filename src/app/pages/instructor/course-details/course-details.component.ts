@@ -367,7 +367,7 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
           // Crear array de recursos con las URLs de los archivos subidos
           const resources: ModuleResource[] = uploadResults.map((result, index) => ({
             name: files[index].name,
-            url: "https://dev-ai-nedi-learning-resources-dev.s3.amazonaws.com/" + result.fileKey || '',
+            url: `${environment.s3ResourcesPublicBaseUrl}/${result.fileKey || ''}`,
             size: files[index].size
           }));
 
@@ -506,7 +506,7 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
         // Crear array de recursos con las URLs de los archivos subidos
         const newResources: ModuleResource[] = uploadResults.map((result, index) => ({
           name: files[index].name,
-          url: "https://ai-nedi-learning-resources.s3.amazonaws.com/" + result.fileKey || '',
+          url: `${environment.s3ResourcesPublicBaseUrl}/${result.fileKey || ''}`,
           size: files[index].size
         }));
 

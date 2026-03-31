@@ -6,6 +6,7 @@ import { NavbarComponent } from '../../../components/navbar/navbar.component';
 import { CoursesService } from '../courses.service';
 import { UploadsService, UploadProgress } from '../../../core/services/uploads.service';
 import { InstructorCourse, CourseStatus, CourseVisibility } from '../../../models/course.model';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-course-editor',
@@ -429,7 +430,7 @@ export class CourseEditorComponent implements OnInit {
             if (result.progress.percentage === 100 && result.fileKey) {
               this.isUploading = false;
               // Construir la URL final usando la fileKey
-              const imageUrl = `https://ai-nedi-learning-resources.s3.amazonaws.com/${result.fileKey}`;
+              const imageUrl = `${environment.s3ResourcesPublicBaseUrl}/${result.fileKey}`;
               console.log('✅ Imagen subida exitosamente:', imageUrl);
               resolve(imageUrl);
             }
