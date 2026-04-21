@@ -14,6 +14,7 @@ import { PaginatedResponse } from '../../../models/paginated-response.model';
 import { CoursesService } from '../courses.service';
 import { UploadsService } from '../../../core/services/uploads.service';
 import { environment } from '../../../../environments/environment';
+import { RuntimeConfigService } from '../../../core/services/runtime-config.service';
 
 function effectiveCourseVisibility(course: InstructorCourse): 'public' | 'private' {
   return course.visibility === 'public' ? 'public' : 'private';
@@ -81,7 +82,8 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private coursesService: CoursesService,
-    private uploadsService: UploadsService
+    private uploadsService: UploadsService,
+    private runtimeConfig: RuntimeConfigService
   ) {}
 
   ngOnInit() {
@@ -365,9 +367,10 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
         try {
           await firstValueFrom(forkJoin(confirmObservables));
           // Crear array de recursos con las URLs de los archivos subidos
+          const baseUrl = this.runtimeConfig.getS3ResourcesBaseUrl();
           const resources: ModuleResource[] = uploadResults.map((result, index) => ({
             name: files[index].name,
-            url: `${environment.s3ResourcesPublicBaseUrl}/${result.fileKey || ''}`,
+            url: `${baseUrl}/${result.fileKey || ''}`,
             size: files[index].size
           }));
 
@@ -504,9 +507,10 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (uploadResults) => {
         // Crear array de recursos con las URLs de los archivos subidos
+        const baseUrl = this.runtimeConfig.getS3ResourcesBaseUrl();
         const newResources: ModuleResource[] = uploadResults.map((result, index) => ({
           name: files[index].name,
-          url: `${environment.s3ResourcesPublicBaseUrl}/${result.fileKey || ''}`,
+          url: `${baseUrl}/${result.fileKey || ''}`,
           size: files[index].size
         }));
 

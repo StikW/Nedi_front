@@ -18,6 +18,7 @@ import { CourseStats, StudentProgressResponse } from '../../models/course-stats.
 import { InstructorStats } from '../../models/instructor-stats.model';
 import { PaginatedResponse } from '../../models/paginated-response.model';
 import { AuthService } from '../../core/services/auth.service';
+import { RuntimeConfigService } from '../../core/services/runtime-config.service';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -25,15 +26,14 @@ import { environment } from '../../../environments/environment';
 })
 export class CoursesService {
   private readonly apiUrl = environment.apiUrl;
-  private readonly resourcesBaseUrl = environment.s3ResourcesPublicBaseUrl || 'https://dev-ai-nedi-learning-resources-dev.s3.amazonaws.com';
-  private readonly modulesBaseUrl = environment.s3ModulesPublicBaseUrl || 'https://dev-ai-nedi-learning-modules-dev.s3.amazonaws.com';
   private courses: InstructorCourse[] = [];
   private coursesSubject = new BehaviorSubject<InstructorCourse[]>([]);
   private courseModulesSubject = new BehaviorSubject<Module[]>([]);
 
   constructor(
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private runtimeConfig: RuntimeConfigService
   ) {
     // Solo precargar si hay sesión; si no, GET /courses devuelve 401 (p. ej. páginas públicas que inyectan este servicio)
     if (this.authService.getAuthToken()) {
@@ -538,19 +538,12 @@ export class CoursesService {
 
   private normalizeResourceUrl(url: string): string {
     if (!url || !url.includes('.s3.amazonaws.com/')) return url;
-
-    const knownBucketHosts = [
-      'https://ai-nedi-learning-resources.s3.amazonaws.com',
-      'https://dev-ai-nedi-learning-resources-dev.s3.amazonaws.com',
-      'https://ai-nedi-learning-modules.s3.amazonaws.com',
-      'https://dev-ai-nedi-learning-modules-dev.s3.amazonaws.com',
-    ];
-
-    const targetBaseUrl = this.isModulesResource(url) ? this.modulesBaseUrl : this.resourcesBaseUrl;
-    const matchedHost = knownBucketHosts.find((host) => url.startsWith(`${host}/`));
-    if (!matchedHost) return url;
-
-    return `${targetBaseUrl}/${url.slice(matchedHost.length + 1)}`;
+    const matchedHost = url.split('.s3.amazonaws.com/')[0] + '.s3.amazonaws.com';
+    const key = url.slice(matchedHost.length + 1);
+    const targetBaseUrl = this.isModulesResource(url)
+      ? this.runtimeConfig.getS3ModulesBaseUrl()
+      : this.runtimeConfig.getS3ResourcesBaseUrl();
+    return `${targetBaseUrl}/${key}`;
   }
 
   private isModulesResource(url: string): boolean {

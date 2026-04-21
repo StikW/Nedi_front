@@ -6,7 +6,7 @@ import { NavbarComponent } from '../../../components/navbar/navbar.component';
 import { CoursesService } from '../courses.service';
 import { UploadsService, UploadProgress } from '../../../core/services/uploads.service';
 import { InstructorCourse, CourseStatus, CourseVisibility } from '../../../models/course.model';
-import { environment } from '../../../../environments/environment';
+import { RuntimeConfigService } from '../../../core/services/runtime-config.service';
 
 @Component({
   selector: 'app-course-editor',
@@ -49,7 +49,8 @@ export class CourseEditorComponent implements OnInit {
     private coursesService: CoursesService,
     private uploadsService: UploadsService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private runtimeConfig: RuntimeConfigService
   ) {
     this.courseForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(100)]],
@@ -430,7 +431,7 @@ export class CourseEditorComponent implements OnInit {
             if (result.progress.percentage === 100 && result.fileKey) {
               this.isUploading = false;
               // Construir la URL final usando la fileKey
-              const imageUrl = `${environment.s3ResourcesPublicBaseUrl}/${result.fileKey}`;
+              const imageUrl = `${this.runtimeConfig.getS3ResourcesBaseUrl()}/${result.fileKey}`;
               console.log('✅ Imagen subida exitosamente:', imageUrl);
               resolve(imageUrl);
             }

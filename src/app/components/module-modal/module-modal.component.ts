@@ -214,7 +214,7 @@ export class ModuleModalComponent implements OnInit, OnChanges {
     }
 
     // Extraer el fileKey de la URL del recurso
-    // La URL tiene el formato: "https://ai-nedi-learning-resources.s3.amazonaws.com/fileKey"
+    // La URL se arma desde runtime config + fileKey (backend lee .env)
     const fileKey = resource.url.split('/').pop();
     
     if (!fileKey) {
