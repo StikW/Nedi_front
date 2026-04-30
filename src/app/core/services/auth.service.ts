@@ -135,6 +135,57 @@ export class AuthService {
   }
 
   /**
+   * Recupera el perfil actualizado del usuario autenticado desde el backend.
+   * \u00datil para refrescar campos como `phoneNumber` que pueden no venir en el
+   * token JWT que tenemos guardado en localStorage.
+   */
+  getMyProfile(): Observable<User> {
+    return this.http
+      .get<User>(`${this.apiUrl}/auth/me`, { headers: this.getAuthHeaders() })
+      .pipe(
+        tap((user) => this.persistCurrentUser({ ...this.getCurrentUser(), ...user } as User)),
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error obteniendo perfil:', error);
+          return throwError(() => new Error('Error al obtener el perfil'));
+        }),
+      );
+  }
+
+  /**
+   * Actualiza el perfil del usuario autenticado.
+   * Solo se permiten los campos: name, email, phoneNumber.
+   * Tras la respuesta sincronizamos localStorage y `currentUser$`.
+   */
+  updateMyProfile(payload: { name?: string; email?: string; phoneNumber?: string }): Observable<User> {
+    return this.http
+      .put<User>(`${this.apiUrl}/auth/me`, payload, { headers: this.getAuthHeaders() })
+      .pipe(
+        tap((user) => this.persistCurrentUser({ ...this.getCurrentUser(), ...user } as User)),
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error actualizando perfil:', error);
+          let errorMessage = 'Error al actualizar el perfil';
+          if (error.status === 400) {
+            errorMessage = 'Datos inv\u00e1lidos. Revisa el formato del tel\u00e9fono.';
+          } else if (error.status === 409) {
+            errorMessage = 'Ese correo ya est\u00e1 en uso por otro usuario';
+          } else if (error.status >= 500) {
+            errorMessage = 'Error del servidor. Intenta m\u00e1s tarde';
+          }
+          return throwError(() => new Error(errorMessage));
+        }),
+      );
+  }
+
+  /**
+   * Sincroniza el usuario actual en memoria + localStorage manteniendo el token.
+   */
+  private persistCurrentUser(user: User): void {
+    if (!user) return;
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
+    this.currentUserSubject.next(user);
+  }
+
+  /**
    * Change user password
    * @param currentPassword - Current password
    * @param newPassword - New password

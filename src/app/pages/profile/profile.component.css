@@ -136,6 +136,19 @@
   display: block;
 }
 
+.field-hint {
+  display: block;
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+
+.field-hint strong {
+  color: #1e293b;
+  font-weight: 600;
+}
+
 .char-count {
   text-align: right;
   font-size: 0.875rem;
