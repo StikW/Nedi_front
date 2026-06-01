@@ -15,9 +15,20 @@ export class RuntimeConfigService {
   constructor(private http: HttpClient) {}
 
   async load(): Promise<void> {
-    this.config = await firstValueFrom(
-      this.http.get<RuntimePublicConfig>(`${environment.apiUrl}/config/public`),
-    );
+    try {
+      this.config = await firstValueFrom(
+        this.http.get<RuntimePublicConfig>(`${environment.apiUrl}/config/public`),
+      );
+    } catch (error) {
+      console.error(
+        `[RuntimeConfig] No se pudo cargar ${environment.apiUrl}/config/public`,
+        error,
+      );
+      this.config = {
+        s3ResourcesPublicBaseUrl: '',
+        s3ModulesPublicBaseUrl: '',
+      };
+    }
   }
 
   getS3ResourcesBaseUrl(): string {
@@ -34,4 +45,3 @@ export class RuntimeConfigService {
     return this.config.s3ModulesPublicBaseUrl;
   }
 }
-

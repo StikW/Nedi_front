@@ -77,7 +77,7 @@
               "sourceMap": true
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "dev"
         },
         "serve": {
           "builder": "@angular/build:dev-server",
@@ -92,7 +92,7 @@
               "buildTarget": "ia-learning:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "dev"
         },
         "extract-i18n": {
           "builder": "@angular/build:extract-i18n"

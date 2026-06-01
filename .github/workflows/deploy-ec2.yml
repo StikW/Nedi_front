@@ -26,7 +26,12 @@ jobs:
         run: npm ci
 
       - name: Build Angular application
-        run: npm run build -- --configuration production
+        run: |
+          if [ "${{ github.ref_name }}" = "develop" ]; then
+            npm run build -- --configuration dev
+          else
+            npm run build -- --configuration production
+          fi
         env:
           NODE_ENV: production
 

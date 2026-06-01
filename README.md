@@ -1,61 +1,64 @@
-# IaLearning
+# Frontend Nedi (Angular)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.0.
+Panel de instructor para Tututor.
 
-## Development server
-
-To start a local development server, run:
+## Desarrollo local
 
 ```bash
+cd backup_front
+npm install
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Por defecto usa la configuración **`dev`** (`environment.dev.ts` → API `https://dev.tututor.co/api`). Abre `http://localhost:4200/`.
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Build manual:
 
 ```bash
-ng generate component component-name
+ng build --configuration dev        # desarrollo
+ng build --configuration production # producción
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Despliegue automático (GitHub Actions)
 
-```bash
-ng generate --help
+Workflow: `.github/workflows/deploy-ec2.yml`
+
+- Rama **`develop`** → build con `--configuration dev` → despliega a EC2 (Nginx).
+- Otros triggers según el workflow (`workflow_dispatch`).
+
+### Secrets en GitHub
+
+Settings → Secrets and variables → Actions:
+
+| Secret | Descripción |
+|--------|-------------|
+| `EC2_HOST` | IP o hostname de la instancia |
+| `EC2_USER` | Usuario SSH (`ubuntu`, `ec2-user`, …) |
+| `EC2_SSH_KEY` | Clave privada PEM completa |
+| `NGINX_PATH` | (Opcional) Ruta estáticos, default `/var/www/html` |
+
+### Nginx (SPA)
+
+```nginx
+location / {
+    try_files $uri $uri/ /index.html;
+}
 ```
 
-## Building
+El API no lo sirve este build: el front llama a `apiUrl` del environment (`/api` en el mismo dominio vía proxy en el servidor).
 
-To build the project run:
+### Security Group
 
-```bash
-ng build
-```
+Puertos típicos: 22 (SSH), 80/443 (HTTP/HTTPS).
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Entornos
 
-## Running unit tests
+| Config | Archivo | API |
+|--------|---------|-----|
+| `dev` | `environment.dev.ts` | `https://dev.tututor.co/api` |
+| `production` | `environment.ts` | `https://tututor.co/api` |
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## Comandos útiles
 
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
-# Nedi_front
-# Nedi_front
+- `ng test` — tests unitarios (Karma)
+- `ng generate component nombre` — scaffolding
