@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { InstructorCourse, CourseStatus } from '../../models/course.model';
 import { environment } from '../../../environments/environment';
+import { getPublicAppOrigin } from '../../core/utils/app-origin';
 
 /** Sin visibility en API = privado (igual que backend) */
 function effectiveVisibility(course: InstructorCourse): 'public' | 'private' {
@@ -47,7 +48,7 @@ export class InstructorCourseListComponent {
   }
 
   publicJoinLink(course: InstructorCourse): string {
-    const base = environment.publicAppUrl.replace(/\/$/, '');
+    const base = getPublicAppOrigin(environment.publicAppUrl);
     return `${base}/join/${course.id}`;
   }
 

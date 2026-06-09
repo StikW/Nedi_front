@@ -34,4 +34,10 @@ export interface User {
   accessToken?: string;
   /** API Key for external services */
   apiKey?: string;
+  /** Instancia Evolution del instructor (p.ej. nedi_<id>) */
+  evolutionInstance?: string;
+  /** Numero de WhatsApp vinculado a Evolution (E.164 sin +) */
+  evolutionNumber?: string;
+  /** Estado de conexion Evolution */
+  evolutionStatus?: 'disconnected' | 'connecting' | 'connected';
 } 

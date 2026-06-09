@@ -86,6 +86,65 @@
           </button>
         </div>
       </form>
+
+      <!-- WhatsApp del agente Nedi (solo instructores) -->
+      <div class="form-section evolution-section" *ngIf="isInstructor">
+        <h3>WhatsApp del Agente Nedi</h3>
+        <p class="section-description">
+          Conecta el número de WhatsApp desde el que Nedi atiende a tus estudiantes por microlearning.
+          Es distinto del teléfono de tutor que aparece en la plantilla de bienvenida.
+        </p>
+
+        <div class="evolution-status-row">
+          <span class="status-label">Estado:</span>
+          <span class="status-badge" [class]="'status-' + evolutionStatus">
+            {{ evolutionStatusLabel }}
+          </span>
+        </div>
+
+        <div class="evolution-info" *ngIf="evolutionInstance">
+          <div class="info-item">
+            <span class="info-label">Instancia:</span>
+            <span class="info-value">{{ evolutionInstance }}</span>
+          </div>
+          <div class="info-item" *ngIf="evolutionNumber">
+            <span class="info-label">Número vinculado:</span>
+            <span class="info-value">{{ formatEvolutionPhone(evolutionNumber) }}</span>
+          </div>
+        </div>
+
+        <div class="evolution-error" *ngIf="evolutionError">{{ evolutionError }}</div>
+
+        <div class="evolution-actions">
+          <button
+            type="button"
+            class="btn-primary"
+            *ngIf="evolutionStatus !== 'connected'"
+            (click)="connectWhatsApp()"
+            [disabled]="isEvolutionLoading">
+            <span *ngIf="!isEvolutionLoading">{{ evolutionStatus === 'connecting' ? 'Mostrar QR' : 'Conectar WhatsApp' }}</span>
+            <span *ngIf="isEvolutionLoading">Preparando...</span>
+          </button>
+
+          <button
+            type="button"
+            class="btn-secondary"
+            *ngIf="evolutionStatus === 'connecting'"
+            (click)="refreshEvolutionStatus()"
+            [disabled]="isEvolutionLoading">
+            Verificar conexión
+          </button>
+
+          <button
+            type="button"
+            class="btn-secondary btn-danger-outline"
+            *ngIf="evolutionStatus === 'connected' || evolutionStatus === 'connecting'"
+            (click)="disconnectWhatsApp()"
+            [disabled]="isEvolutionLoading">
+            Desconectar
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="profile-sidebar">
@@ -136,3 +195,64 @@
   (closeModal)="closePasswordModal()"
   (passwordChanged)="onPasswordChanged()">
 </app-password-modal>
+
+<!-- Modal compacto para vincular WhatsApp -->
+<div
+  class="qr-modal-overlay"
+  *ngIf="showQrModal"
+  (click)="onQrModalBackdropClick($event)">
+  <div class="qr-modal" role="dialog" aria-labelledby="qr-modal-title" aria-modal="true">
+    <div class="qr-modal-header">
+      <div>
+        <h2 id="qr-modal-title">Vincular WhatsApp</h2>
+        <p class="qr-modal-subtitle">Escanea el código con tu teléfono</p>
+      </div>
+      <button type="button" class="qr-modal-close" (click)="closeQrModal()" aria-label="Cerrar">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="qr-modal-body">
+      <ol class="qr-steps">
+        <li>Abre WhatsApp en tu teléfono</li>
+        <li>Menú → <strong>Dispositivos vinculados</strong></li>
+        <li><strong>Vincular dispositivo</strong> y escanea el QR</li>
+      </ol>
+
+      <div class="qr-frame" [class.qr-frame--loading]="isEvolutionLoading && !qrDataUrl">
+        <div class="qr-spinner" *ngIf="isEvolutionLoading && !qrDataUrl"></div>
+        <img
+          *ngIf="qrDataUrl"
+          [src]="qrDataUrl"
+          alt="Código QR para vincular WhatsApp"
+          class="qr-image"
+          width="200"
+          height="200" />
+        <p class="qr-refresh-hint" *ngIf="isQrRefreshing">Actualizando código...</p>
+      </div>
+
+      <p class="pairing-code" *ngIf="pairingCode">
+        Código alternativo: <strong>{{ pairingCode }}</strong>
+      </p>
+
+      <p class="qr-waiting" *ngIf="evolutionStatus === 'connecting' && qrDataUrl && !isQrRefreshing">
+        <span class="qr-pulse"></span>
+        Esperando escaneo...
+      </p>
+
+      <div class="evolution-error qr-modal-error" *ngIf="evolutionError">{{ evolutionError }}</div>
+    </div>
+
+    <div class="qr-modal-footer">
+      <button type="button" class="btn-secondary" (click)="refreshQrCode()" [disabled]="isEvolutionLoading || isQrRefreshing">
+        Renovar QR
+      </button>
+      <button type="button" class="btn-secondary" (click)="refreshEvolutionStatus()" [disabled]="isEvolutionLoading">
+        Ya escaneé
+      </button>
+    </div>
+  </div>
+</div>

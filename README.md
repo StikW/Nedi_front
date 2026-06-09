@@ -2,15 +2,23 @@
 
 Panel de instructor para Tututor.
 
-## Desarrollo local
+## Desarrollo local (back en `localhost:3000`)
 
 ```bash
 cd backup_front
 npm install
-ng serve
+npm start          # → http://localhost:4200 + API http://localhost:3000
 ```
 
-Por defecto usa la configuración **`dev`** (`environment.dev.ts` → API `https://dev.tututor.co/api`). Abre `http://localhost:4200/`.
+Abre la consola del navegador y confirma: `[Nedi] API: http://localhost:3000`.
+
+Para apuntar al servidor remoto de desarrollo:
+
+```bash
+npm run start:dev  # build dev con apiUrl /api (solo útil desplegado en el servidor)
+```
+
+Tras cambiar de entorno, borra la sesión guardada: `localStorage.removeItem('currentUser')` y vuelve a iniciar sesión.
 
 Build manual:
 
@@ -37,15 +45,21 @@ Settings → Secrets and variables → Actions:
 | `EC2_SSH_KEY` | Clave privada PEM completa |
 | `NGINX_PATH` | (Opcional) Ruta estáticos, default `/var/www/html` |
 
-### Nginx (SPA)
+### Nginx (SPA + API)
 
 ```nginx
+server_name tututor.co www.tututor.co;
+
 location / {
     try_files $uri $uri/ /index.html;
 }
+
+location /api/ {
+    proxy_pass http://127.0.0.1:3000/;
+}
 ```
 
-El API no lo sirve este build: el front llama a `apiUrl` del environment (`/api` en el mismo dominio vía proxy en el servidor).
+El front en producción usa `apiUrl: '/api'` (mismo origen en `tututor.co` y `www.tututor.co`).
 
 ### Security Group
 
@@ -55,8 +69,8 @@ Puertos típicos: 22 (SSH), 80/443 (HTTP/HTTPS).
 
 | Config | Archivo | API |
 |--------|---------|-----|
-| `dev` | `environment.dev.ts` | `https://dev.tututor.co/api` |
-| `production` | `environment.ts` | `https://tututor.co/api` |
+| `dev` | `environment.dev.ts` | `/api` (mismo dominio) |
+| `production` | `environment.prod.ts` | `/api` (mismo dominio) |
 
 ## Comandos útiles
 

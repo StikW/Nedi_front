@@ -1,7 +1,8 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://tututor.co/api',
+    /** Mismo origen: funciona en tututor.co y www.tututor.co vía Nginx /api */
+    apiUrl: '/api',
     apiVersion: 'v1',
-    /** Enlaces compartidos (registro público): solo en build `production` */
+    /** Fallback SSR/build; en el navegador se usa window.location.origin */
     publicAppUrl: 'https://tututor.co'
   };

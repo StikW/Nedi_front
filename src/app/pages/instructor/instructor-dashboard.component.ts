@@ -8,6 +8,7 @@ import { InstructorCourse } from '../../models/course.model';
 import { InstructorStats } from '../../models/instructor-stats.model';
 import { PaginatedResponse } from '../../models/paginated-response.model';
 import { CoursesService } from './courses.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -50,13 +51,26 @@ export class InstructorDashboardComponent implements OnInit, OnDestroy {
 
 
   private coursesSubscription?: Subscription;
+  private userSubscription?: Subscription;
+  showWhatsAppSetup = false;
 
   constructor(
     private coursesService: CoursesService,
+    private authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
+    this.userSubscription = this.authService.currentUser$.subscribe((user) => {
+      this.showWhatsAppSetup = user?.role === 'instructor' && user.evolutionStatus !== 'connected';
+    });
+    this.authService.getMyProfile().subscribe({
+      next: () => {
+        const user = this.authService.getCurrentUser();
+        this.showWhatsAppSetup = user?.role === 'instructor' && user.evolutionStatus !== 'connected';
+      },
+      error: () => undefined,
+    });
     // Cargar estadísticas del endpoint primero
     this.loadInstructorStats();
     // Luego cargar cursos (que solo usará fallback si no hay stats del endpoint)
@@ -65,6 +79,7 @@ export class InstructorDashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.coursesSubscription?.unsubscribe();
+    this.userSubscription?.unsubscribe();
   }
 
   private loadCourses(cursor?: string, isGoingBack: boolean = false): void {

@@ -538,12 +538,16 @@ export class CoursesService {
 
   private normalizeResourceUrl(url: string): string {
     if (!url || !url.includes('.s3.amazonaws.com/')) return url;
-    const matchedHost = url.split('.s3.amazonaws.com/')[0] + '.s3.amazonaws.com';
-    const key = url.slice(matchedHost.length + 1);
-    const targetBaseUrl = this.isModulesResource(url)
-      ? this.runtimeConfig.getS3ModulesBaseUrl()
-      : this.runtimeConfig.getS3ResourcesBaseUrl();
-    return `${targetBaseUrl}/${key}`;
+    try {
+      const matchedHost = url.split('.s3.amazonaws.com/')[0] + '.s3.amazonaws.com';
+      const key = url.slice(matchedHost.length + 1);
+      const targetBaseUrl = this.isModulesResource(url)
+        ? this.runtimeConfig.getS3ModulesBaseUrl()
+        : this.runtimeConfig.getS3ResourcesBaseUrl();
+      return `${targetBaseUrl}/${key}`;
+    } catch {
+      return url;
+    }
   }
 
   private isModulesResource(url: string): boolean {

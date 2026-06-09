@@ -1,7 +1,7 @@
 export const environment = {
     production: false,
-    apiUrl: 'https://dev.tututor.co/api',
+    /** Mismo origen en el servidor (tututor.co / www.tututor.co) */
+    apiUrl: '/api',
     apiVersion: 'v1',
-    /** Enlaces compartidos: build con configuración `dev` en angular.json */
-    publicAppUrl: 'https://dev.tututor.co'
+    publicAppUrl: 'https://tututor.co'
   };

@@ -14,6 +14,7 @@ import { PaginatedResponse } from '../../../models/paginated-response.model';
 import { CoursesService } from '../courses.service';
 import { UploadsService } from '../../../core/services/uploads.service';
 import { environment } from '../../../../environments/environment';
+import { getPublicAppOrigin } from '../../../core/utils/app-origin';
 import { RuntimeConfigService } from '../../../core/services/runtime-config.service';
 
 function effectiveCourseVisibility(course: InstructorCourse): 'public' | 'private' {
@@ -143,10 +144,10 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Enlace público de inscripción (solo cursos públicos publicados); usa `environment.publicAppUrl` (tututor.co), no localhost */
+  /** Enlace público de inscripción; usa el host actual (tututor.co o www.tututor.co) */
   get publicJoinLink(): string {
     if (!this.course?.id) return '';
-    const base = environment.publicAppUrl.replace(/\/$/, '');
+    const base = getPublicAppOrigin(environment.publicAppUrl);
     return `${base}/join/${this.course.id}`;
   }
 
