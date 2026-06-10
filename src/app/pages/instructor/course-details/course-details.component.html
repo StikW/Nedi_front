@@ -67,15 +67,16 @@
         </svg>
         {{ shareCopied ? '¡Enlace copiado!' : 'Compartir enlace de registro' }}
       </button>
-      <button type="button" class="btn-metrics" (click)="toggleAdvancedMetrics()" [class.active]="showAdvancedMetrics">
+      <button type="button" class="btn-metrics" (click)="toggleProgressPanel()" [class.active]="coursePanel === 'progress'">
         <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="20" x2="18" y2="10"></line>
-          <line x1="12" y1="20" x2="12" y2="4"></line>
-          <line x1="6" y1="20" x2="6" y2="14"></line>
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
         </svg>
-        Métricas avanzadas
+        Progreso del curso
       </button>
-      <a [routerLink]="['/instructor/courses', course.id, 'students']" class="btn-secondary">
+      <button type="button" class="btn-secondary btn-panel-toggle" (click)="toggleStudentsPanel()" [class.active]="coursePanel === 'students'">
         <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
           <circle cx="9" cy="7" r="4"></circle>
@@ -83,7 +84,7 @@
           <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
         </svg>
         Administrar Estudiantes
-      </a>
+      </button>
       <a [routerLink]="['/instructor/courses', course.id, 'edit']" class="btn-secondary">
         <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -103,144 +104,269 @@
     </div>
   </div>
 
-  <!-- Dashboard de métricas avanzadas -->
-  <div *ngIf="showAdvancedMetrics" class="advanced-metrics-dashboard">
-    <div class="metrics-dashboard-header">
-      <h2>Métricas avanzadas</h2>
-      <button type="button" class="btn-back" (click)="toggleAdvancedMetrics()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
-        </svg>
-        Volver al detalle
-      </button>
+  <!-- Panel unificado de progreso y métricas -->
+  <div *ngIf="showAdvancedMetrics" class="progress-dashboard">
+    <div class="progress-dashboard__header">
+      <div class="progress-dashboard__intro">
+        <span class="progress-dashboard__eyebrow">Seguimiento académico</span>
+        <h2>Progreso del curso</h2>
+        <p class="progress-dashboard__subtitle">
+          {{ courseStats?.totalStudents ?? 0 }} estudiantes ·
+          {{ courseStats?.totalModules ?? modules.length }} módulos ·
+          {{ courseStats?.completionRate ?? 0 }}% avance global
+        </p>
+      </div>
+      <div class="progress-dashboard__actions">
+        <button
+          type="button"
+          class="btn-refresh-metrics"
+          (click)="refreshMetrics()"
+          [disabled]="isLoadingStats || isLoadingStudentProgress"
+          [class.is-loading]="isLoadingStats || isLoadingStudentProgress">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          {{ (isLoadingStats || isLoadingStudentProgress) ? 'Actualizando...' : 'Actualizar datos' }}
+        </button>
+        <button type="button" class="btn-back" (click)="closeCoursePanel()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Volver al curso
+        </button>
+      </div>
     </div>
 
-    <div *ngIf="isLoadingStats" class="metrics-loading">
+    <div *ngIf="isLoadingStats || isLoadingStudentProgress" class="metrics-loading">
       <div class="loading-spinner"></div>
-      <p>Cargando métricas...</p>
+      <p>Cargando progreso del curso...</p>
     </div>
 
-    <div *ngIf="!isLoadingStats && (courseStats || studentProgress.length > 0)" class="metrics-grid">
-      <!-- KPIs -->
-      <div class="metrics-kpis">
-        <div class="kpi-card">
-          <span class="kpi-label">Total estudiantes</span>
+    <div *ngIf="statsError && !isLoadingStats" class="metrics-error">
+      <p>{{ statsError }}</p>
+      <button type="button" class="btn-secondary" (click)="refreshMetrics()">Reintentar</button>
+    </div>
+
+    <div *ngIf="!isLoadingStats && !isLoadingStudentProgress && !statsError" class="progress-dashboard__body">
+      <div class="progress-kpis">
+        <div class="kpi-card kpi-card--students">
+          <span class="kpi-label">Estudiantes</span>
           <span class="kpi-value">{{ courseStats?.totalStudents ?? 0 }}</span>
+          <span class="kpi-hint">{{ notStartedCount }} sin iniciar</span>
         </div>
-        <div class="kpi-card">
-          <span class="kpi-label">Progreso promedio</span>
+        <div class="kpi-card kpi-card--rate">
+          <span class="kpi-label">Avance global</span>
           <span class="kpi-value kpi-percent">{{ courseStats?.completionRate ?? 0 }}%</span>
+          <span class="kpi-hint">Promedio del curso</span>
         </div>
-        <div class="kpi-card">
-          <span class="kpi-label">Módulos del curso</span>
+        <div class="kpi-card kpi-card--modules">
+          <span class="kpi-label">Módulos</span>
           <span class="kpi-value">{{ courseStats?.totalModules ?? modules.length }}</span>
+          <span class="kpi-hint">{{ avgModulesCompleted | number:'1.1-1' }} completados en promedio</span>
         </div>
-        <div class="kpi-card">
-          <span class="kpi-label">Completados (100%)</span>
+        <div class="kpi-card kpi-card--completed">
+          <span class="kpi-label">Curso terminado</span>
           <span class="kpi-value">{{ completedCount }}</span>
+          <span class="kpi-hint">Estudiantes al 100%</span>
         </div>
       </div>
 
-      <!-- Gráfico: distribución por rango de progreso -->
-      <div class="metric-card chart-card">
-        <h3>Distribución por avance</h3>
-        <p class="chart-subtitle">Estudiantes por rango de progreso (página actual)</p>
-        <div class="bar-chart">
-          <div class="bar-row" *ngFor="let bucket of distributionBuckets">
-            <span class="bar-label">{{ bucket.label }}</span>
-            <div class="bar-track">
-              <div class="bar-fill" [style.width.%]="bucket.percent" [attr.data-count]="bucket.count"></div>
-            </div>
-            <span class="bar-value">{{ bucket.count }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Gráfico: progreso promedio (dona/semi-circular) -->
-      <div class="metric-card gauge-card">
-        <h3>Progreso promedio del curso</h3>
-        <div class="gauge-wrap">
-          <div class="gauge-semi" [style.--progress]="(courseStats?.completionRate ?? 0) / 100">
-            <div class="gauge-fill"></div>
-            <span class="gauge-value">{{ courseStats?.completionRate ?? 0 }}%</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Comparativa: todos los estudiantes a la misma escala 0-100% -->
-      <div class="metric-card comparison-chart-card">
-        <h3>Comparativa de avance</h3>
-        <p class="chart-subtitle">Todos los estudiantes de esta página a la misma escala (0-100%)</p>
-        <div class="comparison-bars" *ngIf="studentProgress.length > 0">
-          <div class="comparison-row" *ngFor="let s of studentProgressSortedByProgress">
-            <span class="comparison-name" [title]="s.studentName">{{ s.studentName }}</span>
-            <div class="comparison-scale">
-              <div class="comparison-bar" [style.width.%]="s.completionPercentage"></div>
-              <span class="comparison-pct">{{ s.completionPercentage }}%</span>
+      <div class="progress-analytics">
+        <div class="analytics-card">
+          <h3>Distribución por avance</h3>
+          <p class="chart-subtitle">Cuántos estudiantes hay en cada rango de progreso</p>
+          <div class="bar-chart">
+            <div class="bar-row" *ngFor="let bucket of distributionBuckets">
+              <span class="bar-label">{{ bucket.label }}</span>
+              <div class="bar-track">
+                <div class="bar-fill" [style.width.%]="bucket.percent"></div>
+              </div>
+              <span class="bar-value">{{ bucket.count }}</span>
             </div>
           </div>
         </div>
-        <p *ngIf="studentProgress.length === 0" class="no-data">No hay datos de progreso en esta página.</p>
-      </div>
 
-      <!-- Top estudiantes por progreso -->
-      <div class="metric-card top-students-card">
-        <h3>Estudiantes con mayor avance</h3>
-        <p class="chart-subtitle">Top 10 por porcentaje completado</p>
-        <div class="top-list" *ngIf="topStudentsByProgress.length > 0">
-          <div class="top-row" *ngFor="let s of topStudentsByProgress; let i = index">
-            <span class="top-rank">#{{ i + 1 }}</span>
-            <span class="top-name">{{ s.studentName }}</span>
-            <div class="top-bar-wrap">
-              <div class="top-bar" [style.width.%]="s.completionPercentage"></div>
+        <div class="analytics-card analytics-card--insights">
+          <h3>Resumen de actividad</h3>
+          <p class="chart-subtitle">Engagement y ritmo de avance</p>
+          <div class="insights-grid">
+            <div class="insight-item">
+              <span class="insight-value">{{ activeRecentlyCount }}</span>
+              <span class="insight-label">Activos (7 días)</span>
             </div>
-            <span class="top-pct">{{ s.completionPercentage }}%</span>
+            <div class="insight-item">
+              <span class="insight-value">{{ avgLoginCount | number:'1.0-1' }}</span>
+              <span class="insight-label">Ingresos promedio</span>
+            </div>
+            <div class="insight-item">
+              <span class="insight-value">{{ inProgressCount }}</span>
+              <span class="insight-label">En progreso</span>
+            </div>
           </div>
-        </div>
-        <p *ngIf="topStudentsByProgress.length === 0" class="no-data">No hay datos de progreso en esta página.</p>
-      </div>
-
-      <!-- Módulos completados por estudiante (promedio) -->
-      <div class="metric-card modules-card">
-        <h3>Módulos completados</h3>
-        <p class="chart-subtitle">Promedio por estudiante: {{ avgModulesCompleted | number:'1.1-1' }} de {{ courseStats?.totalModules ?? modules.length }}</p>
-        <div class="mini-bars" *ngIf="studentProgress.length > 0">
-          <div class="mini-bar-row" *ngFor="let s of studentProgress.slice(0, 8)">
-            <span class="mini-bar-label">{{ s.studentName | slice:0:20 }}{{ s.studentName.length > 20 ? '...' : '' }}</span>
-            <div class="mini-bar-track">
-              <div class="mini-bar-fill" [style.width.%]="(s.totalModules ? (s.completedModules / s.totalModules) * 100 : 0)"></div>
+          <div class="gauge-wrap">
+            <div class="gauge-semi" [style.--progress]="(courseStats?.completionRate ?? 0) / 100">
+              <div class="gauge-fill"></div>
+              <span class="gauge-value">{{ courseStats?.completionRate ?? 0 }}%</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Contador de ingresos y última vez que ingresó por estudiante -->
-      <div class="metric-card logins-card">
-        <h3>Ingresos al sistema</h3>
-        <p class="chart-subtitle">Veces que ingresó y fecha del último acceso por estudiante.</p>
-        <div class="logins-list" *ngIf="studentProgress.length > 0">
-          <div class="logins-row" *ngFor="let s of studentProgress">
-            <span class="logins-name" [title]="s.studentName">{{ s.studentName }}</span>
-            <span class="logins-count" [class.logins-count--available]="getLoginCount(s) !== null">
-              <ng-container *ngIf="getLoginCount(s) !== null">{{ getLoginCount(s) }}</ng-container>
-              <ng-container *ngIf="getLoginCount(s) === null">—</ng-container>
-            </span>
-            <span class="logins-date" [title]="s.lastAccessAt">
-              <ng-container *ngIf="s.lastAccessAt">{{ s.lastAccessAt | date:'short' }}</ng-container>
-              <ng-container *ngIf="!s.lastAccessAt">—</ng-container>
-            </span>
+      <section class="progress-students">
+        <div class="progress-students__toolbar">
+          <div>
+            <h3>Detalle por estudiante</h3>
+            <p class="chart-subtitle">Progreso, módulos, actividad y comparación con el promedio del curso</p>
           </div>
+          <label class="sort-control">
+            <span>Ordenar</span>
+            <select [(ngModel)]="tableSort" (ngModelChange)="onTableSortChange()">
+              <option value="progress">Mayor progreso</option>
+              <option value="progress-asc">Menor progreso</option>
+              <option value="name">Nombre A-Z</option>
+              <option value="activity">Último acceso</option>
+              <option value="enrolled">Fecha de inscripción</option>
+            </select>
+          </label>
         </div>
-        <p *ngIf="studentProgress.length === 0" class="no-data">No hay estudiantes en esta página.</p>
-      </div>
-    </div>
 
-    <div *ngIf="!isLoadingStats && (!courseStats && studentProgress.length === 0)" class="metrics-empty">
-      <p>No hay métricas disponibles aún. Inscribe estudiantes y revisa el progreso del curso.</p>
+        <ng-container *ngIf="displayedStudents.length > 0; else emptyStudentsMetrics">
+          <div class="students-table students-table--enhanced">
+            <table>
+              <thead>
+                <tr>
+                  <th>Estudiante</th>
+                  <th>Estado</th>
+                  <th>Progreso</th>
+                  <th>Módulos</th>
+                  <th>Vs promedio</th>
+                  <th>Último acceso</th>
+                  <th>Ingresos</th>
+                  <th>Inscrito</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let student of displayedStudents">
+                  <td>
+                    <div class="student-cell">
+                      <span class="student-avatar">{{ getStudentInitials(student.studentName) }}</span>
+                      <div class="student-meta">
+                        <span class="student-name">{{ student.studentName }}</span>
+                        <span class="student-phone">{{ student.phoneNumber }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-pill" [ngClass]="'status-pill--' + getStudentStatus(student)">
+                      {{ getStudentStatusLabel(student) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="progress-container">
+                      <div class="progress-bar">
+                        <div class="progress-fill" [style.width.%]="student.completionPercentage"></div>
+                      </div>
+                      <span class="progress-text">{{ student.completionPercentage }}%</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="modules-completed">
+                      {{ student.completedModules }} / {{ student.totalModules }}
+                    </span>
+                    <div class="module-dots" *ngIf="student.totalModules > 0">
+                      <span
+                        *ngFor="let dot of getModuleDots(student); let i = index"
+                        class="module-dot"
+                        [class.module-dot--done]="dot"
+                        [title]="'Módulo ' + (i + 1)">
+                      </span>
+                    </div>
+                  </td>
+                  <td class="td-vs-promedio">
+                    <span *ngIf="getVsPromedio(student) !== null"
+                          class="vs-promedio"
+                          [class.vs-above]="getVsPromedio(student)! > 0"
+                          [class.vs-below]="getVsPromedio(student)! < 0"
+                          [class.vs-same]="getVsPromedio(student) === 0">
+                      {{ getVsPromedio(student)! > 0 ? '+' : '' }}{{ getVsPromedio(student) }}%
+                    </span>
+                    <span *ngIf="getVsPromedio(student) === null" class="vs-promedio vs-na">—</span>
+                  </td>
+                  <td>
+                    <span class="access-date" [title]="student.lastAccessAt || ''">
+                      {{ formatRelativeAccess(student.lastAccessAt) }}
+                    </span>
+                    <span class="access-sub" *ngIf="student.lastCompletedAt">
+                      Últ. módulo: {{ student.lastCompletedAt | date:'shortDate' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="login-badge" [class.login-badge--active]="(getLoginCount(student) ?? 0) > 0">
+                      {{ getLoginCount(student) ?? '—' }}
+                    </span>
+                  </td>
+                  <td>{{ student.enrolledAt | date:'mediumDate' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination-controls" *ngIf="studentProgress.length > 0">
+            <div class="pagination-info">
+              <span>Mostrando {{ studentProgress.length }} de {{ courseStats?.totalStudents ?? studentProgress.length }} estudiantes</span>
+              <span class="page-indicator">Página {{ currentStudentPage }}</span>
+            </div>
+            <div class="pagination-buttons">
+              <button class="btn-pagination" (click)="loadPreviousStudentPage()" [disabled]="isLoadingStudentProgress || !hasPrevStudent">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M15 18l-6-6 6-6"></path>
+                </svg>
+                Anterior
+              </button>
+              <button class="btn-pagination" (click)="loadNextStudentPage()" [disabled]="isLoadingStudentProgress || !hasNextStudent">
+                Siguiente
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 18l6-6-6-6"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-template #emptyStudentsMetrics>
+          <div class="metrics-empty">
+            <div class="empty-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <h3>Sin estudiantes inscritos</h3>
+            <p>Comparte el enlace de registro o agrega estudiantes manualmente para ver su progreso aquí.</p>
+            <button type="button" class="btn-primary" (click)="toggleStudentsPanel()">Administrar estudiantes</button>
+          </div>
+        </ng-template>
+      </section>
     </div>
   </div>
 
-  <div *ngIf="!showAdvancedMetrics" class="details-content">
+  <div *ngIf="showStudentsPanel" class="embedded-panel">
+    <div class="embedded-panel__header">
+      <button type="button" class="btn-back" (click)="closeCoursePanel()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Volver al curso
+      </button>
+    </div>
+    <app-course-students
+      [embedded]="true"
+      [inputCourseId]="courseId"
+      (studentsChanged)="onStudentsChanged()">
+    </app-course-students>
+  </div>
+
+  <div *ngIf="coursePanel === 'none'" class="details-content">
     <div class="content-section">
       <h2>Resumen del Curso</h2>
       <div class="overview-grid">
@@ -372,173 +498,6 @@
            (submitModule)="handleModuleUpdate($event)">
          </app-module-modal>
     </div>
-
-    <div class="content-section">
-      <div class="section-header">
-        <h2>Progreso de Estudiantes</h2>
-      </div>
-
-      <!-- Estado de carga de estadísticas -->
-      <div *ngIf="isLoadingStats" class="stats-loading">
-        <div class="loading-spinner"></div>
-        <p>Cargando estadísticas...</p>
-      </div>
-
-      <!-- Estado de error de estadísticas -->
-      <div *ngIf="statsError && !isLoadingStats" class="stats-error">
-        <div class="error-content">
-          <svg xmlns="http://www.w3.org/2000/svg" class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="15" y1="9" x2="9" y2="15"></line>
-            <line x1="9" y1="9" x2="15" y2="15"></line>
-          </svg>
-          <p>{{ statsError }}</p>
-          <button class="btn-secondary" (click)="refreshStats()">Reintentar</button>
-        </div>
-      </div>
-
-      <!-- Estadísticas del curso -->
-      <div *ngIf="courseStats && !isLoadingStats && !statsError" class="progress-stats">
-        <div class="stat-card">
-          <div class="stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-          </div>
-          <div class="stat-content">
-            <h3>Total de Estudiantes</h3>
-            <p class="stat-value">{{ courseStats.totalStudents }}</p>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-            </svg>
-          </div>
-          <div class="stat-content">
-            <h3>Progreso Promedio</h3>
-            <p class="stat-value">{{ courseStats.completionRate }}%</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="students-list">
-        <!-- Loading indicator -->
-        <div class="loading-indicator" *ngIf="isLoadingStudentProgress">
-          <div class="spinner"></div>
-          <span>Cargando progreso de estudiantes...</span>
-        </div>
-
-        <ng-container *ngIf="!isLoadingStudentProgress">
-          <!-- Lista de estudiantes con progreso -->
-          <ng-container *ngIf="studentProgress.length > 0; else emptyStudents">
-            <div class="students-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Estudiante</th>
-                    <th>Teléfono</th>
-                    <th>Progreso</th>
-                    <th class="th-vs-promedio">Vs promedio</th>
-                    <th>Módulos Completados</th>
-                    <th>Fecha de Inscripción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let student of studentProgress">
-                    <td>
-                      <div class="student-info">
-                        <span class="student-name">{{ student.studentName }}</span>
-                      </div>
-                    </td>
-                    <td>{{ student.phoneNumber }}</td>
-                    <td>
-                      <div class="progress-container">
-                        <div class="progress-bar">
-                          <div class="progress-fill" [style.width.%]="student.completionPercentage"></div>
-                        </div>
-                        <span class="progress-text">{{ student.completionPercentage }}%</span>
-                      </div>
-                    </td>
-                    <td class="td-vs-promedio">
-                      <span *ngIf="getVsPromedio(student) !== null" 
-                            class="vs-promedio" 
-                            [class.vs-above]="getVsPromedio(student)! > 0" 
-                            [class.vs-below]="getVsPromedio(student)! < 0"
-                            [class.vs-same]="getVsPromedio(student) === 0">
-                        {{ getVsPromedio(student)! > 0 ? '+' : '' }}{{ getVsPromedio(student) }}%
-                      </span>
-                      <span *ngIf="getVsPromedio(student) === null" class="vs-promedio vs-na">—</span>
-                    </td>
-                    <td>
-                      <span class="modules-completed">
-                        {{ student.completedModules }} / {{ student.totalModules }}
-                      </span>
-                    </td>
-                    <td>{{ student.enrolledAt | date:'mediumDate' }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </ng-container>
-
-          <!-- Empty state -->
-          <ng-template #emptyStudents>
-            <div class="empty-state">
-              <div class="empty-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-              </div>
-              <h3>Aún No Hay Estudiantes</h3>
-              <p>Los estudiantes aparecerán aquí una vez que se inscriban en tu curso</p>
-            </div>
-          </ng-template>
-        </ng-container>
-
-      </div>
-
-      <!-- Pagination Controls -->
-      <div class="pagination-controls" *ngIf="studentProgress.length > 0">
-        <div class="pagination-info">
-          <span>Mostrando {{ studentProgress.length }} estudiantes</span>
-          <span class="page-indicator">
-            Página {{ currentStudentPage }}
-          </span>
-        </div>
-        
-        <div class="pagination-buttons">
-          <button 
-            class="btn-pagination" 
-            (click)="loadPreviousStudentPage()" 
-            [disabled]="isLoadingStudentProgress || !hasPrevStudent">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M15 18l-6-6 6-6"></path>
-            </svg>
-            Anterior
-          </button>
-          
-          <button 
-            class="btn-pagination" 
-            (click)="loadNextStudentPage()" 
-            [disabled]="isLoadingStudentProgress || !hasNextStudent">
-            Siguiente
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M9 18l6-6-6-6"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-
 
   </div>
 </div>

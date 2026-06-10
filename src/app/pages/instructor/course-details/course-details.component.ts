@@ -6,6 +6,7 @@ import { Subject, takeUntil, forkJoin, of, firstValueFrom } from 'rxjs';
 import { NavbarComponent } from '../../../components/navbar/navbar.component';
 import { ModuleCardComponent } from '../../../components/module-card/module-card.component';
 import { ModuleModalComponent, ModuleFormData } from '../../../components/module-modal/module-modal.component';
+import { CourseStudentsComponent } from '../course-students/course-students.component';
 
 import { Module, ModuleStatus, ModuleResource } from '../../../models/module.model';
 import { InstructorCourse, CourseStatus } from '../../../models/course.model';
@@ -24,7 +25,15 @@ function effectiveCourseVisibility(course: InstructorCourse): 'public' | 'privat
 @Component({
   selector: 'app-course-details',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, NavbarComponent, ModuleCardComponent, ModuleModalComponent],
+  imports: [
+    CommonModule,
+    RouterLink,
+    FormsModule,
+    NavbarComponent,
+    ModuleCardComponent,
+    ModuleModalComponent,
+    CourseStudentsComponent,
+  ],
   templateUrl: './course-details.component.html',
   styleUrls: ['./course-details.component.scss']
 })
@@ -76,8 +85,11 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
   isLoadingStudentProgress: boolean = false;
   studentSortOrder: 'asc' | 'desc' = 'desc';
 
-  // Vista de métricas avanzadas
-  showAdvancedMetrics = false;
+  // Panel inferior: contenido del curso | progreso | estudiantes
+  coursePanel: 'none' | 'progress' | 'students' = 'none';
+  metricsDataLoaded = false;
+  studentPageSize = 50;
+  tableSort: 'progress' | 'progress-asc' | 'name' | 'activity' | 'enrolled' = 'progress';
 
   constructor(
     private router: Router,
@@ -90,8 +102,6 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadCourseData();
     this.loadModules();
-    this.loadCourseStats();
-    this.loadStudentProgress();
     
     // Suscribirse a cambios en los módulos del servicio
     this.coursesService.getCourseModules().pipe(
@@ -653,6 +663,48 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
     this.loadCourseStats();
   }
 
+  refreshMetrics(): void {
+    this.metricsDataLoaded = false;
+    this.loadMetricsData(true);
+  }
+
+  get showAdvancedMetrics(): boolean {
+    return this.coursePanel === 'progress';
+  }
+
+  get showStudentsPanel(): boolean {
+    return this.coursePanel === 'students';
+  }
+
+  toggleProgressPanel(): void {
+    this.coursePanel = this.coursePanel === 'progress' ? 'none' : 'progress';
+    if (this.coursePanel === 'progress' && !this.metricsDataLoaded) {
+      this.loadMetricsData();
+    }
+  }
+
+  toggleStudentsPanel(): void {
+    this.coursePanel = this.coursePanel === 'students' ? 'none' : 'students';
+  }
+
+  closeCoursePanel(): void {
+    this.coursePanel = 'none';
+  }
+
+  onStudentsChanged(): void {
+    this.metricsDataLoaded = false;
+    if (this.coursePanel === 'progress') {
+      this.loadMetricsData(true);
+    }
+  }
+
+  private loadMetricsData(force = false): void {
+    if (!this.courseId) return;
+    if (this.metricsDataLoaded && !force) return;
+    this.loadCourseStats();
+    this.loadStudentProgress('1');
+  }
+
   private loadStudentProgress(page?: string) {
     if (!this.courseId) {
       return;
@@ -663,7 +715,13 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
     // Usar la página proporcionada o la página actual
     const pageToLoad = page || this.currentStudentPage;
 
-    this.coursesService.getStudentProgressPaginated(this.courseId, undefined, this.studentSortOrder, parseInt(pageToLoad)).pipe(
+    this.coursesService.getStudentProgressPaginated(
+      this.courseId,
+      undefined,
+      this.studentSortOrder,
+      parseInt(pageToLoad),
+      this.studentPageSize,
+    ).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response: StudentProgressResponse) => {
@@ -672,7 +730,8 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
         this.hasPrevStudent = response.pagination.hasPrev;
         this.currentStudentPage = response.pagination.page;
         this.isLoadingStudentProgress = false;
-        
+        this.metricsDataLoaded = true;
+
         console.log('✅ Progreso de estudiantes cargado:', {
           count: response.studentProgress.length,
           hasNext: response.pagination.hasNext,
@@ -715,8 +774,92 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleAdvancedMetrics(): void {
-    this.showAdvancedMetrics = !this.showAdvancedMetrics;
+  onTableSortChange(): void {
+    // Ordenación en cliente sobre la página actual
+  }
+
+  get displayedStudents(): StudentProgress[] {
+    const list = [...this.studentProgress];
+    switch (this.tableSort) {
+      case 'progress':
+        return list.sort((a, b) => b.completionPercentage - a.completionPercentage);
+      case 'progress-asc':
+        return list.sort((a, b) => a.completionPercentage - b.completionPercentage);
+      case 'name':
+        return list.sort((a, b) => a.studentName.localeCompare(b.studentName, 'es'));
+      case 'activity':
+        return list.sort((a, b) => this.accessTimestamp(b) - this.accessTimestamp(a));
+      case 'enrolled':
+        return list.sort((a, b) => new Date(b.enrolledAt).getTime() - new Date(a.enrolledAt).getTime());
+      default:
+        return list;
+    }
+  }
+
+  get notStartedCount(): number {
+    return this.studentProgress.filter((s) => s.completedModules === 0).length;
+  }
+
+  get inProgressCount(): number {
+    return this.studentProgress.filter(
+      (s) => s.completedModules > 0 && s.completionPercentage < 100,
+    ).length;
+  }
+
+  get activeRecentlyCount(): number {
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return this.studentProgress.filter((s) => this.accessTimestamp(s) >= weekAgo).length;
+  }
+
+  get avgLoginCount(): number {
+    if (this.studentProgress.length === 0) return 0;
+    const sum = this.studentProgress.reduce((acc, s) => acc + (this.getLoginCount(s) ?? 0), 0);
+    return sum / this.studentProgress.length;
+  }
+
+  getStudentInitials(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return '?';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  getStudentStatus(student: StudentProgress): 'completed' | 'in_progress' | 'not_started' {
+    if (student.completionPercentage >= 100) return 'completed';
+    if (student.completedModules === 0) return 'not_started';
+    return 'in_progress';
+  }
+
+  getStudentStatusLabel(student: StudentProgress): string {
+    const status = this.getStudentStatus(student);
+    if (status === 'completed') return 'Completado';
+    if (status === 'not_started') return 'Sin iniciar';
+    return 'En progreso';
+  }
+
+  getModuleDots(student: StudentProgress): boolean[] {
+    const total = student.totalModules || 0;
+    const done = student.completedModules || 0;
+    return Array.from({ length: total }, (_, i) => i < done);
+  }
+
+  formatRelativeAccess(dateStr?: string): string {
+    if (!dateStr) return 'Sin registro';
+    const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) return 'Sin registro';
+    const diffMs = Date.now() - date.getTime();
+    const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+    if (days <= 0) return 'Hoy';
+    if (days === 1) return 'Ayer';
+    if (days < 7) return `Hace ${days} días`;
+    if (days < 30) return `Hace ${Math.floor(days / 7)} sem.`;
+    return date.toLocaleDateString('es', { day: 'numeric', month: 'short' });
+  }
+
+  private accessTimestamp(student: StudentProgress): number {
+    if (!student.lastAccessAt) return 0;
+    const t = new Date(student.lastAccessAt).getTime();
+    return Number.isNaN(t) ? 0 : t;
   }
 
   /** Distribución de estudiantes por rango de progreso (para gráfico de barras) */
@@ -740,13 +883,6 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
     }));
   }
 
-  /** Top estudiantes ordenados por porcentaje de completado */
-  get topStudentsByProgress(): StudentProgress[] {
-    return [...this.studentProgress]
-      .sort((a, b) => b.completionPercentage - a.completionPercentage)
-      .slice(0, 10);
-  }
-
   /** Cantidad de estudiantes que completaron el 100% */
   get completedCount(): number {
     return this.studentProgress.filter((s) => s.completionPercentage >= 100).length;
@@ -757,11 +893,6 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
     if (this.studentProgress.length === 0) return 0;
     const sum = this.studentProgress.reduce((acc, s) => acc + s.completedModules, 0);
     return sum / this.studentProgress.length;
-  }
-
-  /** Lista de estudiantes ordenada por progreso (desc) para el gráfico comparativo */
-  get studentProgressSortedByProgress(): StudentProgress[] {
-    return [...this.studentProgress].sort((a, b) => b.completionPercentage - a.completionPercentage);
   }
 
   /** Diferencia vs promedio del curso (positivo = por encima, negativo = por debajo). Null si no hay promedio. */

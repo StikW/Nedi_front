@@ -474,7 +474,13 @@ export class CoursesService {
    * @param page Número de página
    * @returns Observable con respuesta paginada del progreso de estudiantes
    */
-  getStudentProgressPaginated(courseId: string, cursor?: string, sortOrder: 'asc' | 'desc' = 'desc', page?: number): Observable<StudentProgressResponse> {
+  getStudentProgressPaginated(
+    courseId: string,
+    cursor?: string,
+    sortOrder: 'asc' | 'desc' = 'desc',
+    page?: number,
+    limit?: number,
+  ): Observable<StudentProgressResponse> {
     const headers = this.authService.getAuthHeaders();
     let url = `${this.apiUrl}/courses/${courseId}/student-progress?sortOrder=${sortOrder}`;
     
@@ -484,6 +490,10 @@ export class CoursesService {
     
     if (page !== undefined) {
       url += `&page=${page}`;
+    }
+
+    if (limit !== undefined) {
+      url += `&limit=${limit}`;
     }
     
     console.log('🌐 Llamando al endpoint de progreso de estudiantes:', url);

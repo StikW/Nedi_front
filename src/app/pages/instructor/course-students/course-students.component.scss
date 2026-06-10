@@ -3,6 +3,71 @@
 
 .students-container {
   @extend .page-container;
+
+  &--embedded {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0;
+  }
+}
+
+.loading-container--embedded {
+  height: auto;
+  min-height: 200px;
+  background: transparent;
+}
+
+.content-section--embedded {
+  margin-bottom: 0;
+  box-shadow: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.5rem;
+}
+
+.section-eyebrow {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6366f1;
+  margin-bottom: 0.35rem;
+}
+
+.action-buttons {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.btn-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  color: #2563eb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 44px;
+  min-height: 44px;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover:not(:disabled) {
+    background: #dbeafe;
+    border-color: #93c5fd;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .content-section {
@@ -252,6 +317,70 @@
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 2rem;
+}
+
+.modal-content--confirm {
+  max-width: 480px;
+}
+
+.confirm-delete-message {
+  text-align: center;
+
+  p {
+    margin: 0 0 0.75rem;
+    color: common.$text-primary;
+    line-height: 1.5;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.confirm-delete-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: #fef2f2;
+  color: #dc2626;
+
+  svg {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+.confirm-delete-hint {
+  font-size: 0.875rem;
+  color: #64748b !important;
+}
+
+.btn-confirm-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  background: #dc2626;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: #b91c1c;
+    border-color: #b91c1c;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
 // CSV Import Styles

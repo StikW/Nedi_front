@@ -82,8 +82,8 @@ export class StudentsService {
     return this.http.post<Student>(`${this.apiUrl}/students`, requestBody, { headers }).pipe(
       catchError((error) => {
         console.error('Error agregando estudiante:', error);
-        return throwError(() => new Error('Error al agregar el estudiante'));
-      })
+        return throwError(() => error);
+      }),
     );
   }
 
@@ -100,6 +100,19 @@ export class StudentsService {
         console.error('Error eliminando estudiante:', error);
         return throwError(() => new Error('Error al eliminar el estudiante'));
       })
+    );
+  }
+
+  /**
+   * Actualiza los datos de un estudiante
+   */
+  updateStudent(studentId: string, data: { name?: string; phoneNumber?: string }): Observable<Student> {
+    const headers = this.authService.getAuthHeaders();
+    return this.http.put<Student>(`${this.apiUrl}/students/${studentId}`, data, { headers }).pipe(
+      catchError((error) => {
+        console.error('Error actualizando estudiante:', error);
+        return throwError(() => error);
+      }),
     );
   }
 

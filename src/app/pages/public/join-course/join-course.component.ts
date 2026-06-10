@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CoursesService, PublicCoursePreview } from '../../instructor/courses.service';
+import { E164_PHONE_REGEX, E164_PHONE_VALIDATION_MESSAGE } from '../../../shared/utils/phone-validation';
 
 @Component({
   selector: 'app-join-course',
@@ -12,6 +13,8 @@ import { CoursesService, PublicCoursePreview } from '../../instructor/courses.se
   styleUrls: ['./join-course.component.css']
 })
 export class JoinCourseComponent implements OnInit {
+  readonly phoneValidationMessage = E164_PHONE_VALIDATION_MESSAGE;
+
   courseId: string | null = null;
   preview: PublicCoursePreview | null = null;
   isLoading = true;
@@ -28,7 +31,7 @@ export class JoinCourseComponent implements OnInit {
   ) {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
-      phoneNumber: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(32)]]
+      phoneNumber: ['', [Validators.required, Validators.pattern(E164_PHONE_REGEX)]]
     });
   }
 

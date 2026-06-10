@@ -1,7 +1,7 @@
-<app-navbar></app-navbar>
+<app-navbar *ngIf="!embedded"></app-navbar>
 
 <!-- Estado de carga -->
-<div *ngIf="isLoading" class="loading-container">
+<div *ngIf="isLoading" class="loading-container" [class.loading-container--embedded]="embedded">
   <div class="loading-spinner"></div>
   <p>Cargando estudiantes...</p>
 </div>
@@ -20,15 +20,16 @@
   </div>
 </div>
 
-<div *ngIf="!isLoading && !error" class="students-container">
-  <div class="content-section">
+<div *ngIf="!isLoading && !error" class="students-container" [class.students-container--embedded]="embedded">
+  <div class="content-section" [class.content-section--embedded]="embedded">
     <div class="section-header">
       <div class="header-content">
+        <span *ngIf="embedded" class="section-eyebrow">Administración</span>
         <h2>Gestión de Estudiantes</h2>
         <p class="subtitle">Administra los estudiantes inscritos en este curso</p>
       </div>
       <div class="section-actions">
-        <button class="btn-secondary" [routerLink]="['/instructor/courses', courseId]">
+        <button *ngIf="!embedded" class="btn-secondary" [routerLink]="['/instructor/courses', courseId]">
           <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M19 12H5M12 19l-7-7 7-7"/>
           </svg>
@@ -77,20 +78,31 @@
                   <td>{{ student.phoneNumber | phoneFormat }}</td>
                   <td>{{ student.enrolledAt | date:'mediumDate' }}</td>
                   <td>
-                    <button class="btn-delete" 
-                            [disabled]="isRemovingStudent" 
-                            (click)="removeStudent(student.id)" 
-                            title="Eliminar Estudiante">
-                      <svg *ngIf="!isRemovingStudent" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        <line x1="10" y1="11" x2="10" y2="17"></line>
-                        <line x1="14" y1="11" x2="14" y2="17"></line>
-                      </svg>
-                      <svg *ngIf="isRemovingStudent" xmlns="http://www.w3.org/2000/svg" class="loading-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12a9 9 0 11-6.219-8.56"></path>
-                      </svg>
-                    </button>
+                    <div class="action-buttons">
+                      <button class="btn-edit"
+                              [disabled]="isUpdatingStudent"
+                              (click)="openEditStudentModal(student)"
+                              title="Editar estudiante">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                      </button>
+                      <button class="btn-delete" 
+                              [disabled]="isRemovingStudent" 
+                              (click)="openDeleteStudentModal(student)" 
+                              title="Eliminar estudiante">
+                        <svg *ngIf="!(isRemovingStudent && studentToDelete?.id === student.id)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                          <line x1="10" y1="11" x2="10" y2="17"></line>
+                          <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                        <svg *ngIf="isRemovingStudent && studentToDelete?.id === student.id" xmlns="http://www.w3.org/2000/svg" class="loading-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M21 12a9 9 0 11-6.219-8.56"></path>
+                        </svg>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -151,6 +163,104 @@
       </div>
     </div>
 
+    <!-- Delete Student Modal -->
+    <div class="modal" *ngIf="showDeleteStudentModal && studentToDelete">
+      <div class="modal-content modal-content--confirm">
+        <div class="modal-header">
+          <h3>Eliminar estudiante</h3>
+          <button class="btn-close-modal" [disabled]="isRemovingStudent" (click)="closeDeleteStudentModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="confirm-delete-message">
+            <div class="confirm-delete-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <p>
+              ¿Seguro que quieres eliminar a <strong>{{ studentToDelete.name }}</strong>
+              (<span>{{ studentToDelete.phoneNumber | phoneFormat }}</span>) de este curso?
+            </p>
+            <p class="confirm-delete-hint">
+              Se borrará su progreso en el curso. Si lo vuelves a inscribir, empezará desde cero.
+            </p>
+          </div>
+
+          <div class="error-message" *ngIf="removeStudentError">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+            <span>{{ removeStudentError }}</span>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" [disabled]="isRemovingStudent" (click)="closeDeleteStudentModal()">
+              Cancelar
+            </button>
+            <button type="button" class="btn-confirm-delete" [disabled]="isRemovingStudent" (click)="confirmRemoveStudent()">
+              {{ isRemovingStudent ? 'Eliminando...' : 'Eliminar estudiante' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div class="modal" *ngIf="showEditStudentModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Editar Estudiante</h3>
+          <button class="btn-close-modal" (click)="closeEditStudentModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="error-message" *ngIf="editStudentError">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+            <span>{{ editStudentError }}</span>
+          </div>
+
+          <form (ngSubmit)="updateStudent()">
+            <div class="form-group">
+              <label for="editStudentName">Nombre</label>
+              <input type="text" id="editStudentName" [(ngModel)]="editingStudent.name" name="editName" required>
+            </div>
+            <div class="form-group">
+              <label for="editPhoneNumber">Teléfono</label>
+              <input type="tel"
+                     id="editPhoneNumber"
+                     [(ngModel)]="editingStudent.phoneNumber"
+                     name="editPhoneNumber"
+                     placeholder="Ej: +573001234567 (con +, sin espacios)"
+                     required>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn-secondary" [disabled]="isUpdatingStudent" (click)="closeEditStudentModal()">Cancelar</button>
+              <button type="submit" class="btn-primary" [disabled]="isUpdatingStudent">
+                {{ isUpdatingStudent ? 'Guardando...' : 'Guardar cambios' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- Add Student Modal -->
     <div class="modal" *ngIf="showAddStudentModal">
       <div class="modal-content">
@@ -185,7 +295,7 @@
                      id="phoneNumber" 
                      [(ngModel)]="newStudent.phoneNumber" 
                      name="phoneNumber" 
-                     placeholder="Ej: +51987654321 (Perú), +56987654321 (Chile) o 3001234567 (Colombia)"
+                     placeholder="Ej: +573001234567 (con + obligatorio, sin espacios)"
                      (input)="onPhoneNumberInput($event)"
                      required>
             </div>

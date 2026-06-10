@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +7,8 @@ import { Student, StudentCSV } from '../../../models/student.model';
 import { PaginatedResponse } from '../../../models/paginated-response.model';
 import { StudentsService } from '../../../core/services/students.service';
 import { PhoneFormatPipe } from '../../../shared/pipes/phone-format.pipe';
+import { validateStudentPhone } from '../../../shared/utils/phone-validation';
+import { extractApiErrorMessage } from '../../../shared/utils/api-error';
 
 @Component({
   selector: 'app-course-students',
@@ -15,7 +17,11 @@ import { PhoneFormatPipe } from '../../../shared/pipes/phone-format.pipe';
   templateUrl: './course-students.component.html',
   styleUrls: ['./course-students.component.scss']
 })
-export class CourseStudentsComponent implements OnInit {
+export class CourseStudentsComponent implements OnInit, OnChanges {
+  @Input() embedded = false;
+  @Input() inputCourseId?: string;
+  @Output() studentsChanged = new EventEmitter<void>();
+
   courseId: string = '';
   courseTitle: string = '';
   
@@ -24,10 +30,17 @@ export class CourseStudentsComponent implements OnInit {
   isLoading = true;
   error: string | null = null;
   showAddStudentModal: boolean = false;
+  showEditStudentModal: boolean = false;
+  showDeleteStudentModal: boolean = false;
   showImportModal: boolean = false;
   isAddingStudent = false;
+  isUpdatingStudent = false;
   isRemovingStudent = false;
   addStudentError: string | null = null;
+  editStudentError: string | null = null;
+  removeStudentError: string | null = null;
+  editingStudent: Partial<Student> = {};
+  studentToDelete: Student | null = null;
   newStudent: Partial<Student> = {
     name: '',
     phoneNumber: ''
@@ -47,17 +60,32 @@ export class CourseStudentsComponent implements OnInit {
   studentCursorHistory: string[] = [];
   currentStudentPageIndex: number = 0;
 
-  // Pipe instance for formatting phone numbers
-  private phoneFormatPipe = new PhoneFormatPipe();
-
   constructor(
     private route: ActivatedRoute,
     private studentsService: StudentsService
   ) {}
 
   ngOnInit(): void {
-    this.courseId = this.route.snapshot.params['id'] || '';
-    this.loadCourseData();
+    if (this.embedded) {
+      this.bootstrapEmbedded();
+    } else {
+      this.courseId = this.route.snapshot.params['id'] || '';
+      this.loadCourseData();
+      this.loadStudents();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.embedded && changes['inputCourseId'] && this.inputCourseId) {
+      this.courseId = this.inputCourseId;
+      this.loadStudents();
+    }
+  }
+
+  private bootstrapEmbedded(): void {
+    if (!this.inputCourseId) return;
+    this.courseId = this.inputCourseId;
+    this.isLoading = true;
     this.loadStudents();
   }
 
@@ -146,12 +174,18 @@ export class CourseStudentsComponent implements OnInit {
       return;
     }
 
+    const phoneError = validateStudentPhone(this.newStudent.phoneNumber);
+    if (phoneError) {
+      this.addStudentError = phoneError;
+      return;
+    }
+
     this.isAddingStudent = true;
-    this.addStudentError = null; // Limpiar errores previos
+    this.addStudentError = null;
 
     const studentData = {
-      name: this.newStudent.name,
-      phoneNumber: this.phoneFormatPipe.transform(this.newStudent.phoneNumber)
+      name: this.newStudent.name.trim(),
+      phoneNumber: this.newStudent.phoneNumber,
     };
 
     this.studentsService.addStudentToCourse(this.courseId, studentData).subscribe({
@@ -159,41 +193,134 @@ export class CourseStudentsComponent implements OnInit {
         this.students = [...this.students, newStudent];
         this.closeAddStudentModal();
         this.isAddingStudent = false;
+        this.studentsChanged.emit();
       },
       error: (error) => {
         console.error('Error agregando estudiante:', error);
         this.isAddingStudent = false;
         
-        // Mostrar mensaje de error específico
-        if (error.status === 400) {
-          this.addStudentError = 'Los datos del estudiante no son válidos. Verifica el nombre y número de teléfono.';
-        } else if (error.status === 409) {
-          this.addStudentError = 'Este estudiante ya está registrado en el curso.';
+        const apiMessage = extractApiErrorMessage(error);
+        if (error.status === 409) {
+          this.addStudentError =
+            apiMessage ||
+            'No se puede registrar: ya hay un estudiante con ese número en este curso. El teléfono no se puede repetir dentro del mismo curso.';
+        } else if (error.status === 400) {
+          this.addStudentError =
+            apiMessage ||
+            'Los datos del estudiante no son válidos. Verifica el nombre y número de teléfono.';
         } else if (error.status === 500) {
           this.addStudentError = 'Error interno del servidor. Por favor, inténtalo de nuevo más tarde.';
         } else {
-          this.addStudentError = 'No se pudo agregar el estudiante. Por favor, inténtalo de nuevo.';
+          this.addStudentError =
+            apiMessage || 'No se pudo agregar el estudiante. Por favor, inténtalo de nuevo.';
         }
       }
     });
   }
 
-  removeStudent(studentId: string): void {
-    if (confirm('¿Estás seguro de que quieres eliminar este estudiante?')) {
-      this.isRemovingStudent = true;
+  openEditStudentModal(student: Student): void {
+    const phoneNumber = student.phoneNumber.startsWith('+')
+      ? student.phoneNumber
+      : `+${student.phoneNumber}`;
 
-      this.studentsService.removeStudentFromCourse(this.courseId, studentId).subscribe({
-        next: () => {
-          this.students = this.students.filter(student => student.id !== studentId);
-          this.isRemovingStudent = false;
-        },
-        error: (error) => {
-          console.error('Error eliminando estudiante:', error);
-          this.isRemovingStudent = false;
-          // Aquí podrías mostrar un mensaje de error al usuario
-        }
-      });
+    this.editingStudent = {
+      id: student.id,
+      name: student.name,
+      phoneNumber,
+    };
+    this.editStudentError = null;
+    this.showEditStudentModal = true;
+  }
+
+  closeEditStudentModal(): void {
+    this.showEditStudentModal = false;
+    this.editStudentError = null;
+    this.editingStudent = {};
+  }
+
+  updateStudent(): void {
+    if (!this.editingStudent.id || !this.editingStudent.name || !this.editingStudent.phoneNumber) {
+      return;
     }
+
+    const phoneError = validateStudentPhone(this.editingStudent.phoneNumber);
+    if (phoneError) {
+      this.editStudentError = phoneError;
+      return;
+    }
+
+    this.isUpdatingStudent = true;
+    this.editStudentError = null;
+
+    const payload = {
+      name: this.editingStudent.name.trim(),
+      phoneNumber: this.editingStudent.phoneNumber,
+    };
+
+    this.studentsService.updateStudent(this.editingStudent.id, payload).subscribe({
+      next: (updated) => {
+        this.students = this.students.map((s) => (s.id === updated.id ? { ...s, ...updated } : s));
+        this.closeEditStudentModal();
+        this.isUpdatingStudent = false;
+        this.studentsChanged.emit();
+      },
+      error: (error) => {
+        console.error('Error actualizando estudiante:', error);
+        this.isUpdatingStudent = false;
+        const apiMessage = extractApiErrorMessage(error);
+        if (error.status === 409) {
+          this.editStudentError =
+            apiMessage ||
+            'No se puede actualizar: ya hay un estudiante con ese número en este curso. El teléfono no se puede repetir dentro del mismo curso.';
+        } else if (error.status === 400) {
+          this.editStudentError =
+            apiMessage || 'Los datos no son válidos. Verifica el nombre y el teléfono.';
+        } else {
+          this.editStudentError =
+            apiMessage || 'No se pudo actualizar el estudiante. Inténtalo de nuevo.';
+        }
+      },
+    });
+  }
+
+  openDeleteStudentModal(student: Student): void {
+    this.studentToDelete = student;
+    this.removeStudentError = null;
+    this.showDeleteStudentModal = true;
+  }
+
+  closeDeleteStudentModal(): void {
+    if (this.isRemovingStudent) {
+      return;
+    }
+
+    this.showDeleteStudentModal = false;
+    this.studentToDelete = null;
+    this.removeStudentError = null;
+  }
+
+  confirmRemoveStudent(): void {
+    if (!this.studentToDelete || !this.courseId) {
+      return;
+    }
+
+    const studentId = this.studentToDelete.id;
+    this.isRemovingStudent = true;
+    this.removeStudentError = null;
+
+    this.studentsService.removeStudentFromCourse(this.courseId, studentId).subscribe({
+      next: () => {
+        this.students = this.students.filter((student) => student.id !== studentId);
+        this.isRemovingStudent = false;
+        this.closeDeleteStudentModal();
+        this.studentsChanged.emit();
+      },
+      error: (error) => {
+        console.error('Error eliminando estudiante:', error);
+        this.isRemovingStudent = false;
+        this.removeStudentError = 'No se pudo eliminar el estudiante. Inténtalo de nuevo.';
+      },
+    });
   }
 
   openImportModal(): void {
@@ -260,12 +387,13 @@ export class CourseStudentsComponent implements OnInit {
         });
 
       // Validate preview data
-      const invalidRows = this.csvPreview.filter(row => 
-        !row.name || !row.phoneNumber
+      const invalidRows = this.csvPreview.filter(
+        (row) => !row.name || !row.phoneNumber || validateStudentPhone(row.phoneNumber) !== null,
       );
 
       if (invalidRows.length > 0) {
-        this.csvError = 'Some rows are missing required data';
+        this.csvError =
+          'Algunas filas tienen datos inválidos. El teléfono debe comenzar con + y no contener espacios.';
         this.csvPreview = [];
       }
     };
@@ -298,6 +426,7 @@ export class CourseStudentsComponent implements OnInit {
         // Mostrar resultado de la importación
         this.showImportResult(importResult);
         this.closeImportModal();
+        this.studentsChanged.emit();
       },
       error: (error) => {
         this.isAddingStudent = false;

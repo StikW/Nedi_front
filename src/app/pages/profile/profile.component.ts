@@ -36,8 +36,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private qrRefreshTimer: ReturnType<typeof setInterval> | null = null;
   /** Evita que syncFromUser pise el estado mientras el modal QR esta abierto. */
   private qrSessionActive = false;
-  private readonly phoneNumberPattern = /^\+?[1-9]\d{1,14}$/;
-
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -46,7 +44,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.profileForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      phoneNumber: ['', [Validators.pattern(this.phoneNumberPattern)]]
     });
   }
 
@@ -72,6 +69,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
     return this.currentUser?.role === 'instructor';
   }
 
+  get tutorPhoneNumber(): string {
+    return this.evolutionNumber || this.currentUser?.phoneNumber || '';
+  }
+
   get evolutionStatusLabel(): string {
     switch (this.evolutionStatus) {
       case 'connected': return 'Conectado';
@@ -92,7 +93,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.profileForm.patchValue({
       name: user.name || '',
       email: user.email || '',
-      phoneNumber: user.phoneNumber || ''
     });
     if (this.isInstructor && !this.qrSessionActive) {
       this.evolutionStatus = user.evolutionStatus || 'disconnected';
@@ -216,6 +216,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.pairingCode = '';
       this.stopStatusPolling();
       this.stopQrRefresh();
+      this.refreshInstructorProfile();
     } else if (status === 'disconnected') {
       this.qrSessionActive = false;
       this.showQrModal = false;
@@ -224,7 +225,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.evolutionNumber = '';
       this.stopStatusPolling();
       this.stopQrRefresh();
+      this.refreshInstructorProfile();
     }
+  }
+
+  private refreshInstructorProfile(): void {
+    if (!this.isInstructor) return;
+    this.authService.getMyProfile().subscribe({
+      next: () => this.syncFromUser(this.authService.getCurrentUser()),
+      error: () => undefined,
+    });
   }
 
   private startStatusPolling(): void {
@@ -277,15 +287,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.isSubmitting = true;
 
     const raw = this.profileForm.value;
-    const payload: { name?: string; email?: string; phoneNumber?: string } = {
+    const payload: { name?: string; email?: string } = {
       name: raw.name?.trim(),
       email: raw.email?.trim(),
     };
-
-    if (this.isInstructorOrAdmin) {
-      const phone = (raw.phoneNumber || '').trim();
-      payload.phoneNumber = phone.length > 0 ? phone : '';
-    }
 
     this.authService.updateMyProfile(payload).subscribe({
       next: (updated) => {

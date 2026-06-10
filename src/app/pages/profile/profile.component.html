@@ -62,17 +62,17 @@
             <input
               type="tel"
               id="phoneNumber"
-              formControlName="phoneNumber"
-              [class]="getFieldClass('phoneNumber')"
-              [readonly]="!isEditing"
-              placeholder="+573001234567">
-            <small class="field-hint">
-              Este número se enviará a tus estudiantes en el mensaje de bienvenida por WhatsApp para que te puedan contactar como tutor.
-              Formato internacional E.164 (ej: <strong>+573001234567</strong>).
+              class="readonly-field"
+              readonly
+              [value]="formatEvolutionPhone(tutorPhoneNumber)"
+              [placeholder]="isInstructor ? 'Conecta WhatsApp del agente Nedi para vincular tu número' : '+573001234567'">
+            <small class="field-hint" *ngIf="isInstructor">
+              Se obtiene automáticamente del número vinculado en Evolution al conectar WhatsApp del agente Nedi.
+              Ese mismo número se envía a tus estudiantes en la plantilla de bienvenida por WhatsApp.
             </small>
-            <span class="error-message" *ngIf="profileForm.get('phoneNumber')?.errors && profileForm.get('phoneNumber')?.touched">
-              {{ getFieldError('phoneNumber') }}
-            </span>
+            <small class="field-hint" *ngIf="!isInstructor">
+              Número de contacto del instructor para la plantilla de bienvenida.
+            </small>
           </div>
         </div>
 
@@ -92,7 +92,7 @@
         <h3>WhatsApp del Agente Nedi</h3>
         <p class="section-description">
           Conecta el número de WhatsApp desde el que Nedi atiende a tus estudiantes por microlearning.
-          Es distinto del teléfono de tutor que aparece en la plantilla de bienvenida.
+          Al vincularlo, ese mismo número se guarda como tu teléfono de tutor en la plantilla de bienvenida.
         </p>
 
         <div class="evolution-status-row">
@@ -106,10 +106,6 @@
           <div class="info-item">
             <span class="info-label">Instancia:</span>
             <span class="info-value">{{ evolutionInstance }}</span>
-          </div>
-          <div class="info-item" *ngIf="evolutionNumber">
-            <span class="info-label">Número vinculado:</span>
-            <span class="info-value">{{ formatEvolutionPhone(evolutionNumber) }}</span>
           </div>
         </div>
 

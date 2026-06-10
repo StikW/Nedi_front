@@ -35,8 +35,11 @@
           <input type="text" formControlName="name" placeholder="Tu nombre" autocomplete="name" />
         </label>
         <label>
-          Teléfono (con código de país)
+          Teléfono (con + al inicio, sin espacios)
           <input type="tel" formControlName="phoneNumber" placeholder="+573001234567" autocomplete="tel" />
+          <span class="field-hint" *ngIf="form.get('phoneNumber')?.touched && form.get('phoneNumber')?.invalid">
+            {{ phoneValidationMessage }}
+          </span>
         </label>
         <button type="submit" class="btn-submit" [disabled]="isSubmitting || form.invalid">
           {{ isSubmitting ? 'Enviando...' : 'Registrarme' }}
