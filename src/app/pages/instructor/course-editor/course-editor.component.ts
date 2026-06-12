@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, ViewChild, ElementRef, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink, Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { NavbarComponent } from '../../../components/navbar/navbar.component';
 import { CoursesService } from '../courses.service';
 import { UploadsService, UploadProgress } from '../../../core/services/uploads.service';
@@ -11,12 +11,17 @@ import { RuntimeConfigService } from '../../../core/services/runtime-config.serv
 @Component({
   selector: 'app-course-editor',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, NavbarComponent],
+  imports: [CommonModule, ReactiveFormsModule, NavbarComponent],
   templateUrl: './course-editor.component.html',
   styleUrls: ['./course-editor.component.css']
 })
-export class CourseEditorComponent implements OnInit {
+export class CourseEditorComponent implements OnInit, OnChanges {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
+  @Input() embedded = false;
+  @Input() inputCourseId?: string;
+  @Output() courseSaved = new EventEmitter<InstructorCourse>();
+  @Output() cancelled = new EventEmitter<void>();
   
   courseForm: FormGroup;
   isEditing = false;
@@ -65,7 +70,11 @@ export class CourseEditorComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Get course ID from route if editing
+    if (this.embedded) {
+      this.bootstrapEmbedded();
+      return;
+    }
+
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.courseId = params['id'];
@@ -73,6 +82,32 @@ export class CourseEditorComponent implements OnInit {
         this.loadCourseData();
       }
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.embedded && changes['inputCourseId'] && this.inputCourseId) {
+      this.bootstrapEmbedded();
+    }
+  }
+
+  private bootstrapEmbedded(): void {
+    if (!this.inputCourseId) return;
+    this.courseId = this.inputCourseId;
+    this.isEditing = true;
+    this.loadCourseData();
+  }
+
+  onCancel(): void {
+    if (this.embedded) {
+      this.cancelled.emit();
+      return;
+    }
+
+    if (this.isEditing && this.courseId) {
+      this.router.navigate(['/instructor/courses', this.courseId]);
+    } else {
+      this.router.navigate(['/instructor']);
+    }
   }
 
   private loadCourseData() {
@@ -244,7 +279,9 @@ export class CourseEditorComponent implements OnInit {
         next: (updatedCourse) => {
           console.log('Course updated:', updatedCourse);
           this.isSubmitting = false;
-          if (this.courseId) {
+          if (this.embedded && updatedCourse) {
+            this.courseSaved.emit(updatedCourse);
+          } else if (this.courseId) {
             this.router.navigate(['/instructor/courses', this.courseId]);
           }
         },

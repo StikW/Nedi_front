@@ -7,6 +7,7 @@ import { NavbarComponent } from '../../../components/navbar/navbar.component';
 import { ModuleCardComponent } from '../../../components/module-card/module-card.component';
 import { ModuleModalComponent, ModuleFormData } from '../../../components/module-modal/module-modal.component';
 import { CourseStudentsComponent } from '../course-students/course-students.component';
+import { CourseEditorComponent } from '../course-editor/course-editor.component';
 
 import { Module, ModuleStatus, ModuleResource } from '../../../models/module.model';
 import { InstructorCourse, CourseStatus } from '../../../models/course.model';
@@ -22,6 +23,8 @@ function effectiveCourseVisibility(course: InstructorCourse): 'public' | 'privat
   return course.visibility === 'public' ? 'public' : 'private';
 }
 
+type CoursePanel = 'none' | 'progress' | 'students' | 'edit';
+
 @Component({
   selector: 'app-course-details',
   standalone: true,
@@ -33,6 +36,7 @@ function effectiveCourseVisibility(course: InstructorCourse): 'public' | 'privat
     ModuleCardComponent,
     ModuleModalComponent,
     CourseStudentsComponent,
+    CourseEditorComponent,
   ],
   templateUrl: './course-details.component.html',
   styleUrls: ['./course-details.component.scss']
@@ -85,8 +89,8 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
   isLoadingStudentProgress: boolean = false;
   studentSortOrder: 'asc' | 'desc' = 'desc';
 
-  // Panel inferior: contenido del curso | progreso | estudiantes
-  coursePanel: 'none' | 'progress' | 'students' = 'none';
+  // Panel inferior: contenido del curso | progreso | estudiantes | editar
+  coursePanel: CoursePanel = 'none';
   metricsDataLoaded = false;
   studentPageSize = 50;
   tableSort: 'progress' | 'progress-asc' | 'name' | 'activity' | 'enrolled' = 'progress';
@@ -102,7 +106,8 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadCourseData();
     this.loadModules();
-    
+    this.syncPanelFromRoute();
+
     // Suscribirse a cambios en los módulos del servicio
     this.coursesService.getCourseModules().pipe(
       takeUntil(this.destroy$)
@@ -192,6 +197,13 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
 
   visibilityBadgeClass(course: InstructorCourse): string {
     return effectiveCourseVisibility(course) === 'public' ? 'visibility-public' : 'visibility-private';
+  }
+
+  getOverviewLines(value?: string): string[] {
+    return (value ?? '')
+      .split('\n')
+      .map((line) => line.trim().replace(/^[-–—•*]\s*/, ''))
+      .filter(Boolean);
   }
 
   togglePublish() {
@@ -676,19 +688,64 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
     return this.coursePanel === 'students';
   }
 
-  toggleProgressPanel(): void {
-    this.coursePanel = this.coursePanel === 'progress' ? 'none' : 'progress';
-    if (this.coursePanel === 'progress' && !this.metricsDataLoaded) {
+  get showEditPanel(): boolean {
+    return this.coursePanel === 'edit';
+  }
+
+  private syncPanelFromRoute(): void {
+    this.route.data.pipe(takeUntil(this.destroy$)).subscribe((data) => {
+      const panel = data['panel'] as CoursePanel | undefined;
+      if (panel && panel !== 'none') {
+        this.setCoursePanel(panel, { skipUrlUpdate: true });
+      }
+    });
+
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      const panel = params['panel'] as CoursePanel | undefined;
+      if (panel && panel !== 'none') {
+        this.setCoursePanel(panel, { skipUrlUpdate: true });
+      }
+    });
+  }
+
+  setCoursePanel(panel: CoursePanel, options?: { skipUrlUpdate?: boolean }): void {
+    this.coursePanel = panel;
+
+    if (panel === 'progress' && !this.metricsDataLoaded) {
       this.loadMetricsData();
     }
+
+    if (options?.skipUrlUpdate) {
+      return;
+    }
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: panel === 'none' ? { panel: null } : { panel },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  toggleProgressPanel(): void {
+    this.setCoursePanel(this.coursePanel === 'progress' ? 'none' : 'progress');
   }
 
   toggleStudentsPanel(): void {
-    this.coursePanel = this.coursePanel === 'students' ? 'none' : 'students';
+    this.setCoursePanel(this.coursePanel === 'students' ? 'none' : 'students');
   }
 
   closeCoursePanel(): void {
-    this.coursePanel = 'none';
+    this.setCoursePanel('none');
+  }
+
+  onCourseSaved(course: InstructorCourse): void {
+    this.course = course;
+    this.setCoursePanel('none');
+  }
+
+  onCourseEditCancelled(): void {
+    this.setCoursePanel('none');
   }
 
   onStudentsChanged(): void {

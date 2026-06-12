@@ -52,16 +52,18 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/instructor/course-editor/course-editor.component').then(m => m.CourseEditorComponent)
       },
       {
-        path: 'courses/:id',
-        loadComponent: () => import('./pages/instructor/course-details/course-details.component').then(m => m.CourseDetailsComponent)
-      },
-      {
         path: 'courses/:id/edit',
-        loadComponent: () => import('./pages/instructor/course-editor/course-editor.component').then(m => m.CourseEditorComponent)
+        loadComponent: () => import('./pages/instructor/course-details/course-details.component').then(m => m.CourseDetailsComponent),
+        data: { panel: 'edit' }
       },
       {
         path: 'courses/:id/students',
-        loadComponent: () => import('./pages/instructor/course-students/course-students.component').then(m => m.CourseStudentsComponent)
+        loadComponent: () => import('./pages/instructor/course-details/course-details.component').then(m => m.CourseDetailsComponent),
+        data: { panel: 'students' }
+      },
+      {
+        path: 'courses/:id',
+        loadComponent: () => import('./pages/instructor/course-details/course-details.component').then(m => m.CourseDetailsComponent)
       },
       {
         path: 'agent-config',

@@ -42,21 +42,24 @@ export class StudentsService {
    * @param sortOrder Orden: 'asc' o 'desc'
    * @returns Observable con respuesta paginada
    */
-  getStudentsPaginated(courseId: string, cursor?: string, sortOrder: 'asc' | 'desc' = 'asc'): Observable<PaginatedResponse<Student>> {
+  getStudentsPaginated(
+    courseId: string,
+    cursor?: string,
+    sortOrder: 'asc' | 'desc' = 'asc',
+    search?: string,
+  ): Observable<PaginatedResponse<Student>> {
     const headers = this.authService.getAuthHeaders();
     let url = `${this.apiUrl}/students/course/${courseId}?sortOrder=${sortOrder}`;
-    
+
     if (cursor) {
       url += `&cursor=${encodeURIComponent(cursor)}`;
     }
-    
-    console.log('🌐 Llamando al endpoint de estudiantes paginados:', url);
-    
+
+    if (search?.trim()) {
+      url += `&search=${encodeURIComponent(search.trim())}`;
+    }
+
     return this.http.get<PaginatedResponse<Student>>(url, { headers }).pipe(
-      tap((response) => {
-        console.log('📡 Respuesta paginada de estudiantes:', response);
-        console.log('📊 Información de paginación de estudiantes:', response.pagination);
-      }),
       catchError((error) => {
         console.error('❌ Error obteniendo estudiantes paginados:', error);
         return throwError(() => new Error('Error al cargar los estudiantes'));
@@ -114,6 +117,26 @@ export class StudentsService {
         return throwError(() => error);
       }),
     );
+  }
+
+  /**
+   * Reinicia el progreso de un estudiante en su curso (módulos, preguntas y estado del agente).
+   */
+  resetStudentProgress(studentId: string): Observable<{ studentId: string; message: string }> {
+    const headers = this.authService.getAuthHeaders();
+
+    return this.http
+      .post<{ studentId: string; message: string }>(
+        `${this.apiUrl}/students/${studentId}/reset-progress`,
+        {},
+        { headers },
+      )
+      .pipe(
+        catchError((error) => {
+          console.error('Error reiniciando progreso del estudiante:', error);
+          return throwError(() => error);
+        }),
+      );
   }
 
   /**

@@ -4,6 +4,54 @@
   background: linear-gradient(135deg, #f0f4ff 0%, #f5f3ff 100%);
 }
 
+.editor-container--embedded {
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+}
+
+.editor-panel-header {
+  padding: 1.75rem 1.75rem 0;
+  margin-bottom: 0;
+}
+
+.editor-panel-eyebrow {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6366f1;
+  margin-bottom: 0.35rem;
+}
+
+.editor-panel-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  color: #1e293b;
+  background: none;
+  -webkit-text-fill-color: unset;
+}
+
+.editor-panel-subtitle {
+  margin: 0 0 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.editor-container--embedded .editor-form {
+  max-width: none;
+  margin: 0;
+  padding: 0 1.75rem 1.75rem;
+  box-shadow: none;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
 .editor-header {
   max-width: 800px;
   margin: 0 auto 2rem;

@@ -22,11 +22,11 @@
 
 <div *ngIf="!isLoading && !error" class="students-container" [class.students-container--embedded]="embedded">
   <div class="content-section" [class.content-section--embedded]="embedded">
-    <div class="section-header">
+    <div class="section-header" [class.section-header--embedded]="embedded">
       <div class="header-content">
-        <span *ngIf="embedded" class="section-eyebrow">Administración</span>
+        <span *ngIf="embedded" class="section-eyebrow">Estudiantes</span>
         <h2>Gestión de Estudiantes</h2>
-        <p class="subtitle">Administra los estudiantes inscritos en este curso</p>
+        <p class="subtitle" *ngIf="!embedded">Administra los estudiantes inscritos en este curso</p>
       </div>
       <div class="section-actions">
         <button *ngIf="!embedded" class="btn-secondary" [routerLink]="['/instructor/courses', courseId]">
@@ -53,6 +53,41 @@
       </div>
     </div>
 
+    <div class="search-section">
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="M21 21l-4.35-4.35"></path>
+          </svg>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Buscar por nombre o teléfono..."
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="searchStudents()"
+            [disabled]="isSearchingStudents">
+        </div>
+        <button
+          class="btn-search"
+          (click)="searchStudents()"
+          [disabled]="isSearchingStudents || !searchQuery.trim()">
+          {{ isSearchingStudents ? 'Buscando...' : 'Buscar' }}
+        </button>
+        <button
+          *ngIf="isSearchMode"
+          type="button"
+          class="btn-clear-search"
+          (click)="clearSearch()"
+          [disabled]="isSearchingStudents">
+          Limpiar
+        </button>
+      </div>
+      <p class="search-hint" *ngIf="isSearchMode">
+        Mostrando resultados para «{{ currentSearchPattern }}»
+      </p>
+    </div>
+
     <div class="students-list">
       <!-- Loading indicator -->
       <div class="loading-indicator" *ngIf="isLoadingStudents">
@@ -61,7 +96,7 @@
       </div>
 
       <ng-container *ngIf="!isLoadingStudents">
-        <ng-container *ngIf="students.length > 0; else emptyStudents">
+        <ng-container *ngIf="students.length > 0; else emptyStudentsState">
           <div class="students-table">
             <table>
               <thead>
@@ -80,7 +115,7 @@
                   <td>
                     <div class="action-buttons">
                       <button class="btn-edit"
-                              [disabled]="isUpdatingStudent"
+                              [disabled]="isUpdatingStudent || isResettingProgress"
                               (click)="openEditStudentModal(student)"
                               title="Editar estudiante">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -88,8 +123,31 @@
                           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
                       </button>
+                      <button class="btn-reset"
+                              [disabled]="isResettingProgress || isRemovingStudent"
+                              (click)="openResetProgressModal(student)"
+                              title="Reiniciar progreso">
+                        <svg *ngIf="!(isResettingProgress && studentToResetProgress?.id === student.id)"
+                             xmlns="http://www.w3.org/2000/svg"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2">
+                          <polyline points="23 4 23 10 17 10"></polyline>
+                          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        <svg *ngIf="isResettingProgress && studentToResetProgress?.id === student.id"
+                             xmlns="http://www.w3.org/2000/svg"
+                             class="loading-spinner"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2">
+                          <path d="M21 12a9 9 0 11-6.219-8.56"></path>
+                        </svg>
+                      </button>
                       <button class="btn-delete" 
-                              [disabled]="isRemovingStudent" 
+                              [disabled]="isRemovingStudent || isResettingProgress" 
                               (click)="openDeleteStudentModal(student)" 
                               title="Eliminar estudiante">
                         <svg *ngIf="!(isRemovingStudent && studentToDelete?.id === student.id)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -111,6 +169,19 @@
 
         </ng-container>
       </ng-container>
+      <ng-template #emptyStudentsState>
+        <div class="empty-state" *ngIf="isSearchMode; else emptyStudents">
+          <div class="empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="M21 21l-4.35-4.35"></path>
+            </svg>
+          </div>
+          <h3>Sin resultados</h3>
+          <p>No hay estudiantes que coincidan con «{{ currentSearchPattern }}»</p>
+          <button class="btn-secondary" (click)="clearSearch()">Ver todos los estudiantes</button>
+        </div>
+      </ng-template>
       <ng-template #emptyStudents>
         <div class="empty-state">
           <div class="empty-icon">
@@ -160,6 +231,57 @@
             <path d="M9 18l6-6-6-6"></path>
           </svg>
         </button>
+      </div>
+    </div>
+
+    <!-- Reset Progress Modal -->
+    <div class="modal" *ngIf="showResetProgressModal && studentToResetProgress">
+      <div class="modal-content modal-content--confirm">
+        <div class="modal-header">
+          <h3>Reiniciar progreso</h3>
+          <button class="btn-close-modal" [disabled]="isResettingProgress" (click)="closeResetProgressModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="confirm-reset-message">
+            <div class="confirm-reset-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+            </div>
+            <p>
+              ¿Reiniciar el progreso de <strong>{{ studentToResetProgress.name }}</strong>
+              (<span>{{ studentToResetProgress.phoneNumber | phoneFormat }}</span>)?
+            </p>
+            <p class="confirm-reset-hint">
+              Volverá al primer módulo publicado y a la primera pregunta. Se borrarán módulos completados,
+              avance en preguntas y el estado de la conversación con Nedi. La matrícula no se elimina.
+            </p>
+          </div>
+
+          <div class="error-message" *ngIf="resetProgressError">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+            <span>{{ resetProgressError }}</span>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" [disabled]="isResettingProgress" (click)="closeResetProgressModal()">
+              Cancelar
+            </button>
+            <button type="button" class="btn-confirm-reset" [disabled]="isResettingProgress" (click)="confirmResetProgress()">
+              {{ isResettingProgress ? 'Reiniciando...' : 'Reiniciar progreso' }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 

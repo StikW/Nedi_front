@@ -32,15 +32,19 @@ export class CourseStudentsComponent implements OnInit, OnChanges {
   showAddStudentModal: boolean = false;
   showEditStudentModal: boolean = false;
   showDeleteStudentModal: boolean = false;
+  showResetProgressModal: boolean = false;
   showImportModal: boolean = false;
   isAddingStudent = false;
   isUpdatingStudent = false;
   isRemovingStudent = false;
+  isResettingProgress = false;
   addStudentError: string | null = null;
   editStudentError: string | null = null;
   removeStudentError: string | null = null;
+  resetProgressError: string | null = null;
   editingStudent: Partial<Student> = {};
   studentToDelete: Student | null = null;
+  studentToResetProgress: Student | null = null;
   newStudent: Partial<Student> = {
     name: '',
     phoneNumber: ''
@@ -55,6 +59,12 @@ export class CourseStudentsComponent implements OnInit, OnChanges {
   hasNextStudent: boolean = false;
   isLoadingStudents: boolean = false;
   studentSortOrder: 'asc' | 'desc' = 'asc';
+
+  // Student search
+  searchQuery: string = '';
+  isSearchingStudents = false;
+  isSearchMode = false;
+  currentSearchPattern = '';
   
   // Navigation history for cursor-based pagination
   studentCursorHistory: string[] = [];
@@ -103,41 +113,66 @@ export class CourseStudentsComponent implements OnInit, OnChanges {
     }
 
     this.isLoadingStudents = true;
-    this.isLoading = true; // Sincronizar con el estado inicial
+    this.isLoading = true;
     this.error = null;
 
-    this.studentsService.getStudentsPaginated(this.courseId, cursor, this.studentSortOrder).subscribe({
-      next: (response: PaginatedResponse<Student>) => {
-        this.students = response.data;
-        this.nextStudentCursor = response.pagination.nextCursor;
-        this.hasNextStudent = response.pagination.hasNext;
-        this.currentStudentCursor = cursor;
-        this.isLoadingStudents = false;
-        this.isLoading = false; // Sincronizar con el estado inicial
-        
-        // Manejar historial de cursors
-        this.updateStudentCursorHistory(cursor, isGoingBack);
-        
-        console.log('✅ Estudiantes cargados:', {
-          count: response.data.length,
-          hasNext: response.pagination.hasNext,
-          nextCursor: response.pagination.nextCursor,
-          limit: response.pagination.limit,
-          sortOrder: response.pagination.sortOrder,
-          currentPageIndex: this.currentStudentPageIndex,
-          pageNumber: this.currentStudentPageIndex + 1,
-          historyLength: this.studentCursorHistory.length,
-          cursorHistory: this.studentCursorHistory,
-          isGoingBack: isGoingBack
-        });
-      },
-      error: (error) => {
-        console.error('❌ Error loading students:', error);
-        this.error = 'Error al cargar los estudiantes';
-        this.isLoadingStudents = false;
-        this.isLoading = false; // Sincronizar con el estado inicial
-      }
-    });
+    const search = this.isSearchMode ? this.currentSearchPattern : undefined;
+
+    this.studentsService
+      .getStudentsPaginated(this.courseId, cursor, this.studentSortOrder, search)
+      .subscribe({
+        next: (response: PaginatedResponse<Student>) => {
+          this.students = response.data;
+          this.nextStudentCursor = response.pagination.nextCursor;
+          this.hasNextStudent = response.pagination.hasNext;
+          this.currentStudentCursor = cursor;
+          this.isLoadingStudents = false;
+          this.isLoading = false;
+          this.isSearchingStudents = false;
+
+          this.updateStudentCursorHistory(cursor, isGoingBack);
+        },
+        error: (error) => {
+          console.error('❌ Error loading students:', error);
+          this.error = 'Error al cargar los estudiantes';
+          this.isLoadingStudents = false;
+          this.isLoading = false;
+          this.isSearchingStudents = false;
+        },
+      });
+  }
+
+  searchStudents(cursor?: string, isGoingBack: boolean = false): void {
+    const term = this.searchQuery.trim();
+    if (!term) {
+      this.exitSearchMode();
+      return;
+    }
+
+    this.isSearchingStudents = true;
+    this.isSearchMode = true;
+    this.currentSearchPattern = term;
+
+    if (!cursor) {
+      this.studentCursorHistory = [];
+      this.currentStudentPageIndex = 0;
+    }
+
+    this.loadStudents(cursor, isGoingBack);
+  }
+
+  exitSearchMode(): void {
+    this.isSearchMode = false;
+    this.currentSearchPattern = '';
+    this.searchQuery = '';
+    this.isSearchingStudents = false;
+    this.studentCursorHistory = [];
+    this.currentStudentPageIndex = 0;
+    this.loadStudents();
+  }
+
+  clearSearch(): void {
+    this.exitSearchMode();
   }
 
   openAddStudentModal(): void {
@@ -189,10 +224,14 @@ export class CourseStudentsComponent implements OnInit, OnChanges {
     };
 
     this.studentsService.addStudentToCourse(this.courseId, studentData).subscribe({
-      next: (newStudent) => {
-        this.students = [...this.students, newStudent];
+      next: () => {
         this.closeAddStudentModal();
         this.isAddingStudent = false;
+        if (this.isSearchMode) {
+          this.searchStudents();
+        } else {
+          this.loadStudents(this.currentStudentCursor);
+        }
         this.studentsChanged.emit();
       },
       error: (error) => {
@@ -258,10 +297,14 @@ export class CourseStudentsComponent implements OnInit, OnChanges {
     };
 
     this.studentsService.updateStudent(this.editingStudent.id, payload).subscribe({
-      next: (updated) => {
-        this.students = this.students.map((s) => (s.id === updated.id ? { ...s, ...updated } : s));
+      next: () => {
         this.closeEditStudentModal();
         this.isUpdatingStudent = false;
+        if (this.isSearchMode) {
+          this.searchStudents(this.currentStudentCursor);
+        } else {
+          this.loadStudents(this.currentStudentCursor);
+        }
         this.studentsChanged.emit();
       },
       error: (error) => {
@@ -319,6 +362,47 @@ export class CourseStudentsComponent implements OnInit, OnChanges {
         console.error('Error eliminando estudiante:', error);
         this.isRemovingStudent = false;
         this.removeStudentError = 'No se pudo eliminar el estudiante. Inténtalo de nuevo.';
+      },
+    });
+  }
+
+  openResetProgressModal(student: Student): void {
+    this.studentToResetProgress = student;
+    this.resetProgressError = null;
+    this.showResetProgressModal = true;
+  }
+
+  closeResetProgressModal(): void {
+    if (this.isResettingProgress) {
+      return;
+    }
+
+    this.showResetProgressModal = false;
+    this.studentToResetProgress = null;
+    this.resetProgressError = null;
+  }
+
+  confirmResetProgress(): void {
+    if (!this.studentToResetProgress) {
+      return;
+    }
+
+    const studentId = this.studentToResetProgress.id;
+    this.isResettingProgress = true;
+    this.resetProgressError = null;
+
+    this.studentsService.resetStudentProgress(studentId).subscribe({
+      next: () => {
+        this.isResettingProgress = false;
+        this.closeResetProgressModal();
+        this.studentsChanged.emit();
+      },
+      error: (error) => {
+        console.error('Error reiniciando progreso:', error);
+        this.isResettingProgress = false;
+        this.resetProgressError =
+          extractApiErrorMessage(error) ||
+          'No se pudo reiniciar el progreso. Inténtalo de nuevo.';
       },
     });
   }
@@ -420,7 +504,11 @@ export class CourseStudentsComponent implements OnInit, OnChanges {
         
         // Agregar los estudiantes creados a la lista actual
         if (importResult.createdStudents && importResult.createdStudents.length > 0) {
-          this.students = [...this.students, ...importResult.createdStudents];
+          if (this.isSearchMode) {
+            this.searchStudents();
+          } else {
+            this.loadStudents(this.currentStudentCursor);
+          }
         }
         
         // Mostrar resultado de la importación
@@ -453,7 +541,11 @@ export class CourseStudentsComponent implements OnInit, OnChanges {
   // Métodos de paginación para estudiantes
   loadNextStudentPage(): void {
     if (this.hasNextStudent && this.nextStudentCursor && !this.isLoadingStudents) {
-      this.loadStudents(this.nextStudentCursor, false);
+      if (this.isSearchMode) {
+        this.searchStudents(this.nextStudentCursor, false);
+      } else {
+        this.loadStudents(this.nextStudentCursor, false);
+      }
     }
   }
 
@@ -461,7 +553,11 @@ export class CourseStudentsComponent implements OnInit, OnChanges {
     if (!this.isLoadingStudents && this.canGoBackStudent()) {
       this.currentStudentPageIndex--;
       const previousCursor = this.studentCursorHistory[this.currentStudentPageIndex];
-      this.loadStudents(previousCursor, true);
+      if (this.isSearchMode) {
+        this.searchStudents(previousCursor, true);
+      } else {
+        this.loadStudents(previousCursor, true);
+      }
     }
   }
 
@@ -496,7 +592,11 @@ export class CourseStudentsComponent implements OnInit, OnChanges {
   changeStudentSortOrder(newOrder: 'asc' | 'desc'): void {
     if (this.studentSortOrder !== newOrder) {
       this.studentSortOrder = newOrder;
-      this.loadStudents(); // Recargar con nuevo orden
+      if (this.isSearchMode) {
+        this.searchStudents();
+      } else {
+        this.loadStudents();
+      }
     }
   }
 

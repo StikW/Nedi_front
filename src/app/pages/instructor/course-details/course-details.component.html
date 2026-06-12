@@ -22,7 +22,44 @@
 
 <!-- Contenido del curso -->
 <div *ngIf="course && !isLoading && !error" class="details-container">
-  <div class="details-header">
+  <div class="workspace-shell">
+  <div class="workspace-card">
+    <div class="workspace-card__hero">
+    <div class="details-header__toolbar">
+      <a [routerLink]="['/instructor']" class="breadcrumb-back">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Mis cursos
+      </a>
+      <div class="details-header__utilities">
+        <button
+          *ngIf="showShareButton"
+          type="button"
+          class="btn-share"
+          (click)="copyShareLink()"
+          [attr.title]="publicJoinLink">
+          <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          {{ shareCopied ? '¡Enlace copiado!' : 'Compartir enlace' }}
+        </button>
+        <button class="btn-primary"
+                [disabled]="isTogglingPublish"
+                (click)="togglePublish()">
+          <svg *ngIf="!isTogglingPublish" xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+          {{ isTogglingPublish ? 'Procesando...' : (course.status === 'published' ? 'Despublicar' : 'Publicar') }}
+        </button>
+      </div>
+    </div>
+
     <div class="header-content">
       <div class="course-status">
         <span class="status-badge" [class]="'status-' + course.status">
@@ -45,78 +82,50 @@
         </span>
       </div>
     </div>
-    <div class="header-actions">
-      <a [routerLink]="['/instructor']" class="btn-back-courses">
-        <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
-        </svg>
-        Volver a la lista de cursos
-      </a>
-      <button
-        *ngIf="showShareButton"
-        type="button"
-        class="btn-share"
-        (click)="copyShareLink()"
-        [attr.title]="publicJoinLink">
-        <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="18" cy="5" r="3"></circle>
-          <circle cx="6" cy="12" r="3"></circle>
-          <circle cx="18" cy="19" r="3"></circle>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-        </svg>
-        {{ shareCopied ? '¡Enlace copiado!' : 'Compartir enlace de registro' }}
-      </button>
-      <button type="button" class="btn-metrics" (click)="toggleProgressPanel()" [class.active]="coursePanel === 'progress'">
-        <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-          <circle cx="9" cy="7" r="4"></circle>
-          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-        </svg>
-        Progreso del curso
-      </button>
-      <button type="button" class="btn-secondary btn-panel-toggle" (click)="toggleStudentsPanel()" [class.active]="coursePanel === 'students'">
-        <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-          <circle cx="9" cy="7" r="4"></circle>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-        </svg>
-        Administrar Estudiantes
-      </button>
-      <a [routerLink]="['/instructor/courses', course.id, 'edit']" class="btn-secondary">
-        <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-        </svg>
-        Editar Curso
-      </a>
-      <button class="btn-primary" 
-              [disabled]="isTogglingPublish" 
-              (click)="togglePublish()">
-        <svg *ngIf="!isTogglingPublish" xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 20h9"></path>
-          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-        </svg>
-        {{ isTogglingPublish ? 'Procesando...' : (course.status === 'published' ? 'Despublicar' : 'Publicar') }}
-      </button>
     </div>
-  </div>
 
+    <nav class="course-workspace-nav" aria-label="Secciones del curso">
+      <button type="button"
+              class="workspace-nav__item"
+              [class.active]="coursePanel === 'none'"
+              (click)="setCoursePanel('none')">
+        Contenido
+      </button>
+      <button type="button"
+              class="workspace-nav__item"
+              [class.active]="coursePanel === 'progress'"
+              (click)="setCoursePanel('progress')">
+        Progreso
+      </button>
+      <button type="button"
+              class="workspace-nav__item"
+              [class.active]="coursePanel === 'students'"
+              (click)="setCoursePanel('students')">
+        Estudiantes
+      </button>
+      <button type="button"
+              class="workspace-nav__item"
+              [class.active]="coursePanel === 'edit'"
+              (click)="setCoursePanel('edit')">
+        Editar curso
+      </button>
+    </nav>
+
+    <div class="workspace-card__panel"
+         [class.workspace-card__panel--flush]="showStudentsPanel || showEditPanel">
   <!-- Panel unificado de progreso y métricas -->
-  <div *ngIf="showAdvancedMetrics" class="progress-dashboard">
-    <div class="progress-dashboard__header">
-      <div class="progress-dashboard__intro">
-        <span class="progress-dashboard__eyebrow">Seguimiento académico</span>
+  <div *ngIf="showAdvancedMetrics" class="workspace-panel workspace-panel--inline">
+    <div class="workspace-panel__header">
+      <div class="workspace-panel__intro">
+        <span class="workspace-panel__eyebrow">Seguimiento académico</span>
         <h2>Progreso del curso</h2>
-        <p class="progress-dashboard__subtitle">
+        <p class="workspace-panel__subtitle">
           {{ courseStats?.totalStudents ?? 0 }} estudiantes ·
           {{ courseStats?.totalModules ?? modules.length }} módulos ·
           {{ courseStats?.completionRate ?? 0 }}% avance global
         </p>
       </div>
-      <div class="progress-dashboard__actions">
+      <div class="workspace-panel__actions">
         <button
           type="button"
           class="btn-refresh-metrics"
@@ -127,12 +136,6 @@
             <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
           </svg>
           {{ (isLoadingStats || isLoadingStudentProgress) ? 'Actualizando...' : 'Actualizar datos' }}
-        </button>
-        <button type="button" class="btn-back" (click)="closeCoursePanel()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          Volver al curso
         </button>
       </div>
     </div>
@@ -147,7 +150,7 @@
       <button type="button" class="btn-secondary" (click)="refreshMetrics()">Reintentar</button>
     </div>
 
-    <div *ngIf="!isLoadingStats && !isLoadingStudentProgress && !statsError" class="progress-dashboard__body">
+    <div *ngIf="!isLoadingStats && !isLoadingStudentProgress && !statsError" class="workspace-panel__body">
       <div class="progress-kpis">
         <div class="kpi-card kpi-card--students">
           <span class="kpi-label">Estudiantes</span>
@@ -343,22 +346,14 @@
             </div>
             <h3>Sin estudiantes inscritos</h3>
             <p>Comparte el enlace de registro o agrega estudiantes manualmente para ver su progreso aquí.</p>
-            <button type="button" class="btn-primary" (click)="toggleStudentsPanel()">Administrar estudiantes</button>
+            <button type="button" class="btn-primary" (click)="setCoursePanel('students')">Administrar estudiantes</button>
           </div>
         </ng-template>
       </section>
     </div>
   </div>
 
-  <div *ngIf="showStudentsPanel" class="embedded-panel">
-    <div class="embedded-panel__header">
-      <button type="button" class="btn-back" (click)="closeCoursePanel()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
-        </svg>
-        Volver al curso
-      </button>
-    </div>
+  <div *ngIf="showStudentsPanel" class="workspace-panel workspace-panel--inline workspace-panel--nested">
     <app-course-students
       [embedded]="true"
       [inputCourseId]="courseId"
@@ -366,22 +361,33 @@
     </app-course-students>
   </div>
 
-  <div *ngIf="coursePanel === 'none'" class="details-content">
-    <div class="content-section">
-      <h2>Resumen del Curso</h2>
-      <div class="overview-grid">
-        <div class="overview-card">
-          <h3>Objetivos de Aprendizaje</h3>
-          <ul class="objectives-list">
-            <li *ngFor="let objective of course.objectives?.split('\n')">
+  <div *ngIf="showEditPanel" class="workspace-panel workspace-panel--inline workspace-panel--nested">
+    <app-course-editor
+      [embedded]="true"
+      [inputCourseId]="courseId"
+      (courseSaved)="onCourseSaved($event)"
+      (cancelled)="onCourseEditCancelled()">
+    </app-course-editor>
+  </div>
+
+  <div *ngIf="coursePanel === 'none'" class="workspace-stack">
+    <div class="content-section content-section--summary">
+      <div class="section-header">
+        <h2>Resumen del Curso</h2>
+      </div>
+      <div class="course-overview">
+        <div class="course-overview__column">
+          <h3 class="course-overview__label">Objetivos de Aprendizaje</h3>
+          <ul class="course-overview__list">
+            <li *ngFor="let objective of getOverviewLines(course.objectives)">
               {{ objective }}
             </li>
           </ul>
         </div>
-        <div class="overview-card">
-          <h3>Prerrequisitos</h3>
-          <ul class="prerequisites-list">
-            <li *ngFor="let prerequisite of course.prerequisites?.split('\n')">
+        <div class="course-overview__column">
+          <h3 class="course-overview__label">Prerrequisitos</h3>
+          <ul class="course-overview__list">
+            <li *ngFor="let prerequisite of getOverviewLines(course.prerequisites)">
               {{ prerequisite }}
             </li>
           </ul>
@@ -499,5 +505,7 @@
          </app-module-modal>
     </div>
 
+  </div>
+  </div>
   </div>
 </div>
