@@ -5,6 +5,7 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { PasswordModalComponent } from '../../components/password-modal/password-modal.component';
 import { AuthService } from '../../core/services/auth.service';
 import { EvolutionService } from '../../core/services/evolution.service';
+import { DialogService } from '../../core/services/dialog.service';
 import { User } from '../../models/user.model';
 
 @Component({
@@ -40,6 +41,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private authService: AuthService,
     private evolutionService: EvolutionService,
+    private dialogService: DialogService,
   ) {
     this.profileForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
@@ -50,7 +52,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadUserProfile();
     this.authService.getMyProfile().subscribe({
-      next: () => this.syncFromUser(this.authService.getCurrentUser()),
+      next: () => {
+        this.syncFromUser(this.authService.getCurrentUser());
+        // Si ya estaba conectado pero el teléfono no se sincronizó, reconsultar Evolution
+        if (this.isInstructor && this.evolutionStatus === 'connected' && !this.tutorPhoneNumber) {
+          this.refreshEvolutionStatus();
+        }
+      },
       error: (err) => console.warn('No se pudo refrescar el perfil:', err?.message || err)
     });
   }
@@ -149,10 +157,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   closeQrModal(force = false): void {
     if (!force && this.evolutionStatus === 'connecting' && this.qrDataUrl) {
-      if (!confirm('¿Cerrar? Aún no has vinculado WhatsApp. Puedes volver a conectar cuando quieras.')) {
-        return;
-      }
+      this.dialogService.confirm({
+        title: 'Cerrar vinculación',
+        message: 'Aún no has vinculado WhatsApp. ¿Deseas cerrar? Puedes volver a conectar cuando quieras.',
+        confirmText: 'Cerrar',
+        variant: 'warning',
+      }).then(confirmed => {
+        if (confirmed) this.finishCloseQrModal();
+      });
+      return;
     }
+    this.finishCloseQrModal();
+  }
+
+  private finishCloseQrModal(): void {
     this.showQrModal = false;
     this.qrSessionActive = false;
     this.qrDataUrl = null;
@@ -181,22 +199,29 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   disconnectWhatsApp(): void {
     if (!this.isInstructor || this.isEvolutionLoading) return;
-    if (!confirm('¿Desconectar el número de WhatsApp del agente Nedi? Los estudiantes dejarán de recibir respuestas por ese número.')) {
-      return;
-    }
-    this.isEvolutionLoading = true;
-    this.evolutionError = '';
-    this.closeQrModal(true);
 
-    this.evolutionService.logout().subscribe({
-      next: () => {
-        this.isEvolutionLoading = false;
-        this.applyEvolutionStatus('disconnected');
-      },
-      error: (err: Error) => {
-        this.isEvolutionLoading = false;
-        this.evolutionError = err.message;
-      }
+    this.dialogService.confirm({
+      title: 'Desconectar WhatsApp',
+      message: '¿Desconectar el número de WhatsApp del agente Nedi? Los estudiantes dejarán de recibir respuestas por ese número.',
+      confirmText: 'Desconectar',
+      variant: 'danger',
+    }).then(confirmed => {
+      if (!confirmed) return;
+
+      this.isEvolutionLoading = true;
+      this.evolutionError = '';
+      this.closeQrModal(true);
+
+      this.evolutionService.logout().subscribe({
+        next: () => {
+          this.isEvolutionLoading = false;
+          this.applyEvolutionStatus('disconnected');
+        },
+        error: (err: Error) => {
+          this.isEvolutionLoading = false;
+          this.evolutionError = err.message;
+        },
+      });
     });
   }
 
@@ -298,11 +323,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.syncFromUser(updated);
         this.isSubmitting = false;
         this.isEditing = false;
-        alert('Perfil actualizado exitosamente');
+        this.dialogService.alert({
+          title: 'Perfil actualizado',
+          message: 'Tus datos se guardaron correctamente.',
+          variant: 'success',
+        });
       },
       error: (err: Error) => {
         this.isSubmitting = false;
-        alert(err.message || 'Error al actualizar el perfil');
+        this.dialogService.alert({
+          title: 'Error',
+          message: err.message || 'No se pudo actualizar el perfil.',
+          variant: 'danger',
+        });
       }
     });
   }

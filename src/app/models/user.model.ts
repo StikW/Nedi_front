@@ -3,7 +3,7 @@
  */
 export interface User {
   /** Unique identifier for the user */
-  id: number;
+  id: string;
   /** User's email address */
   email: string;
   /** User's full name */

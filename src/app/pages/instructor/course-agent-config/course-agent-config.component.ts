@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { NavbarComponent } from '../../../components/navbar/navbar.component';
+import { DialogService } from '../../../core/services/dialog.service';
 
 interface AgentConfig {
   communicationStyle: 'formal' | 'casual' | 'mentor' | 'humorous';
@@ -74,7 +75,7 @@ export class CourseAgentConfigComponent implements OnInit {
   newRestrictionPolicy: string = '';
   newCustomSource: string = '';
 
-  constructor() {}
+  constructor(private dialogService: DialogService) {}
 
   ngOnInit() {
     // TODO: Load instructor's global agent config
@@ -122,6 +123,10 @@ export class CourseAgentConfigComponent implements OnInit {
   saveConfig() {
     // TODO: Implement API call to save instructor's global agent config
     console.log('Saving instructor global agent config:', this.config);
-    alert('Configuración global del agente guardada exitosamente!');
+    this.dialogService.alert({
+      title: 'Configuración guardada',
+      message: 'La configuración global del agente se guardó exitosamente.',
+      variant: 'success',
+    });
   }
 } 

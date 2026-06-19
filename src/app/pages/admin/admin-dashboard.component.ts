@@ -6,6 +6,7 @@ import { UserModalComponent } from '../../components/user-modal/user-modal.compo
 import { User } from '../../models/user.model';
 import { PaginatedResponse } from '../../models/paginated-response.model';
 import { UsersService } from '../../core/services/users.service';
+import { DialogService } from '../../core/services/dialog.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -44,7 +45,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   private usersSubscription?: Subscription;
 
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private dialogService: DialogService,
+  ) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -60,7 +64,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
     this.usersService.getUsersPaginated(cursor, this.userSortOrder).subscribe({
       next: (response: PaginatedResponse<User>) => {
-        this.users = response.data;
+        this.users = response.data ?? [];
         this.nextUserCursor = response.pagination.nextCursor;
         this.hasNextUser = response.pagination.hasNext;
         this.currentUserCursor = cursor;
@@ -94,36 +98,62 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
 
 
-  deleteUser(userId: number): void {
+  deleteUser(userId: string): void {
     const user = this.users.find(u => u.id === userId);
     const userName = user?.name || 'este usuario';
-    
-    if (confirm(`¿Estás seguro de que quieres eliminar a "${userName}"? Esta acción no se puede deshacer.`)) {
+    const extra =
+      user?.role === 'instructor'
+        ? '\n\nTambién se eliminarán sus cursos, datos del agente e instancia de WhatsApp (Evolution).'
+        : '';
+
+    this.dialogService.confirm({
+      title: 'Eliminar usuario',
+      message: `¿Estás seguro de que quieres eliminar a "${userName}"? Esta acción no se puede deshacer.${extra}`,
+      confirmText: 'Eliminar',
+      variant: 'danger',
+    }).then(confirmed => {
+      if (!confirmed) return;
+
       this.usersService.deleteUser(userId).subscribe({
         next: () => {
-          // El servicio ya actualiza la lista automáticamente
-          console.log('Usuario eliminado exitosamente');
+          this.users = this.users.filter(u => u.id !== userId);
         },
         error: (error) => {
           console.error('Error eliminando usuario:', error);
-          alert('Error al eliminar el usuario. Por favor, inténtalo de nuevo.');
-        }
+          this.dialogService.alert({
+            title: 'Error',
+            message: 'No se pudo eliminar el usuario. Por favor, inténtalo de nuevo.',
+            variant: 'danger',
+          });
+        },
       });
-    }
+    });
   }
 
   refreshUsers(): void {
-    this.isLoading = true;
-    this.usersService.refreshUsers().subscribe({
-      next: () => {
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error refreshing users:', error);
-        this.isLoading = false;
-        alert('Error al recargar los usuarios. Por favor, inténtalo de nuevo.');
-      }
-    });
+    if (this.isLoadingUsers) return;
+
+    this.isSearchMode = false;
+    this.searchEmail = '';
+    this.currentSearchPattern = '';
+    this.userCursorHistory = [''];
+    this.currentUserPageIndex = 0;
+    this.currentUserCursor = undefined;
+    this.loadUsers();
+  }
+
+  /** Vuelve a la primera página y recarga la lista visible en el panel. */
+  private reloadUserList(): void {
+    this.userCursorHistory = [''];
+    this.currentUserPageIndex = 0;
+    this.currentUserCursor = undefined;
+
+    if (this.isSearchMode) {
+      this.searchUsersByEmail();
+      return;
+    }
+
+    this.loadUsers();
   }
 
   getRoleLabel(role: string): string {
@@ -166,15 +196,23 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (this.selectedUser) {
       // Edit existing user
       this.usersService.updateUser(this.selectedUser.id, userData).subscribe({
-        next: () => {
+        next: (updatedUser) => {
+          if (updatedUser) {
+            this.users = this.users.map(u =>
+              u.id === updatedUser.id ? updatedUser : u,
+            );
+          }
           this.isSubmittingUser = false;
           this.closeUserModal();
-          console.log('Usuario actualizado exitosamente');
         },
         error: (error) => {
           console.error('Error actualizando usuario:', error);
           this.isSubmittingUser = false;
-          alert('Error al actualizar el usuario. Por favor, inténtalo de nuevo.');
+          this.dialogService.alert({
+            title: 'Error',
+            message: 'No se pudo actualizar el usuario. Por favor, inténtalo de nuevo.',
+            variant: 'danger',
+          });
         }
       });
     } else {
@@ -183,12 +221,19 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         next: () => {
           this.isSubmittingUser = false;
           this.closeUserModal();
-          console.log('Usuario creado exitosamente');
+          this.isSearchMode = false;
+          this.searchEmail = '';
+          this.currentSearchPattern = '';
+          this.reloadUserList();
         },
         error: (error) => {
           console.error('Error creando usuario:', error);
           this.isSubmittingUser = false;
-          alert('Error al crear el usuario. Por favor, inténtalo de nuevo.');
+          this.dialogService.alert({
+            title: 'Error',
+            message: 'No se pudo crear el usuario. Por favor, inténtalo de nuevo.',
+            variant: 'danger',
+          });
         }
       });
     }
@@ -276,7 +321,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
     this.usersService.searchUsersPaginated(this.currentSearchPattern, cursor, this.userSortOrder).subscribe({
       next: (response: PaginatedResponse<User>) => {
-        this.users = response.data;
+        this.users = response.data ?? [];
         this.nextUserCursor = response.pagination.nextCursor;
         this.hasNextUser = response.pagination.hasNext;
         this.currentUserCursor = cursor;

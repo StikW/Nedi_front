@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Module } from '../../models/module.model';
+import { DialogService } from '../../core/services/dialog.service';
 
 @Component({
   selector: 'app-module-card',
@@ -18,6 +19,8 @@ export class ModuleCardComponent {
   @Output() deleteModule = new EventEmitter<string>();
   @Output() viewModule = new EventEmitter<Module>();
 
+  constructor(private dialogService: DialogService) {}
+
   onEdit(event: Event): void {
     event.stopPropagation();
     this.editModule.emit(this.module);
@@ -25,9 +28,16 @@ export class ModuleCardComponent {
 
   onDelete(event: Event): void {
     event.stopPropagation();
-    if (confirm('¿Estás seguro de que quieres eliminar este módulo?')) {
-      this.deleteModule.emit(this.module.id);
-    }
+    this.dialogService.confirm({
+      title: 'Eliminar módulo',
+      message: '¿Estás seguro de que quieres eliminar este módulo? Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      variant: 'danger',
+    }).then(confirmed => {
+      if (confirmed) {
+        this.deleteModule.emit(this.module.id);
+      }
+    });
   }
 
   onView(): void {

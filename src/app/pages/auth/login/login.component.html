@@ -1,11 +1,154 @@
-<div class="login-container">
-  <div class="login-card">
-    <h1>Bienvenido de Vuelta</h1>
-    <p class="login-subtitle">Inicia sesión para continuar tu viaje de aprendizaje</p>
-    
+<div class="landing-page">
+  <div class="landing-bg" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+    <span class="grid-pattern"></span>
+  </div>
+
+  <main class="landing-main">
+    <section class="hero">
+      <div class="hero-content">
+        <p class="hero-brand">NEDI</p>
+        <p class="hero-badge">
+          <span class="badge-dot"></span>
+          Plataforma para instructores
+        </p>
+        <h1>
+          Tu academia con tutor inteligente
+          <span class="title-accent">en WhatsApp</span>
+        </h1>
+        <p class="hero-lead">
+          Crea cursos, sube material de estudio y ofrece a tus estudiantes un acompañamiento
+          personalizado en su chat habitual, impulsado por inteligencia artificial.
+        </p>
+
+        <ul class="hero-highlights">
+          <li>Cursos con módulos y PDFs</li>
+          <li>Tutor IA 24/7</li>
+          <li>Seguimiento de alumnos</li>
+        </ul>
+
+        <button type="button" class="hero-cta" (click)="openLogin()">
+          Acceder a mi panel
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="hero-visual" aria-hidden="true">
+        <div class="visual-card visual-card-main">
+          <div class="visual-header">
+            <span class="visual-dot"></span>
+            <span class="visual-dot"></span>
+            <span class="visual-dot"></span>
+          </div>
+          <div class="chat-preview">
+            <div class="chat-bubble chat-in">
+              <span class="chat-label">Estudiante</span>
+              ¿Puedes explicarme el módulo 2?
+            </div>
+            <div class="chat-bubble chat-out">
+              <span class="chat-label">Tutor NEDI</span>
+              Claro. Según tu material, el módulo 2 trata sobre…
+            </div>
+            <div class="chat-bubble chat-in chat-small">
+              ¡Perfecto, gracias!
+            </div>
+          </div>
+        </div>
+        <div class="visual-card visual-card-float">
+          <span class="float-icon">✦</span>
+          <strong>3 cursos activos</strong>
+          <span>12 estudiantes hoy</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="features-section">
+      <div class="features-header">
+        <h2>Todo lo que necesitas para enseñar con IA</h2>
+        <p>Un panel claro para ti, una experiencia natural para tus alumnos.</p>
+      </div>
+
+      <div class="features">
+        <article class="feature-card">
+          <div class="feature-icon-wrap feature-icon-blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke-linecap="round"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              <path d="M8 7h8M8 11h8M8 15h5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>Cursos y contenido</h3>
+          <p>
+            Organiza módulos, sube PDFs y define la ruta de aprendizaje de cada curso
+            desde un panel sencillo.
+          </p>
+        </article>
+
+        <article class="feature-card feature-card-accent">
+          <div class="feature-icon-wrap feature-icon-violet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3>Tutor por WhatsApp</h3>
+          <p>
+            Tus estudiantes interactúan con un agente que responde dudas usando el material
+            del curso, disponible en su chat habitual.
+          </p>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon-wrap feature-icon-indigo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+              <path d="M18 20V10M12 20V4M6 20v-6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3>Seguimiento</h3>
+          <p>
+            Consulta el avance de tus alumnos, gestiona inscripciones y mantén el control
+            de cada grupo desde un solo lugar.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <div class="landing-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+        <rect x="3" y="11" width="18" height="11" rx="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke-linecap="round"/>
+      </svg>
+      <p>
+        El acceso es solo por invitación. Si eres instructor, usa las credenciales que te
+        proporcionó el administrador.
+      </p>
+    </div>
+  </main>
+</div>
+
+<div
+  class="login-overlay"
+  *ngIf="showLoginModal"
+  (click)="closeLogin()"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="login-modal-title"
+>
+  <div class="login-modal" (click)="$event.stopPropagation()">
+    <button type="button" class="modal-close" (click)="closeLogin()" aria-label="Cerrar">
+      ×
+    </button>
+
+    <div class="modal-brand">NEDI</div>
+    <h2 id="login-modal-title">Iniciar sesión</h2>
+    <p class="login-subtitle">Ingresa con tu cuenta de instructor o administrador</p>
+
     <form (ngSubmit)="onSubmit(loginForm)" #loginForm="ngForm" class="login-form">
       <div class="form-group">
-        <label for="email">Correo Electrónico</label>
+        <label for="email">Correo electrónico</label>
         <input
           type="email"
           id="email"
@@ -15,12 +158,13 @@
           email
           #emailInput="ngModel"
           [class.error]="emailInput.invalid && (emailInput.touched || loginForm.submitted)"
-          placeholder="Ingresa tu correo electrónico"
+          placeholder="tu@correo.com"
           [disabled]="isLoading"
+          autocomplete="email"
         >
         <div class="error-message" *ngIf="emailInput.invalid && (emailInput.touched || loginForm.submitted)">
           <span *ngIf="emailInput.errors?.['required']">El correo electrónico es requerido</span>
-          <span *ngIf="emailInput.errors?.['email']">Por favor ingresa un correo electrónico válido</span>
+          <span *ngIf="emailInput.errors?.['email']">Ingresa un correo electrónico válido</span>
         </div>
       </div>
 
@@ -36,14 +180,16 @@
             minlength="6"
             #passwordInput="ngModel"
             [class.error]="passwordInput.invalid && (passwordInput.touched || loginForm.submitted)"
-            placeholder="Ingresa tu contraseña"
+            placeholder="Tu contraseña"
             [disabled]="isLoading"
+            autocomplete="current-password"
           >
-          <button 
-            type="button" 
-            class="toggle-password" 
+          <button
+            type="button"
+            class="toggle-password"
             (click)="togglePassword()"
             [disabled]="isLoading"
+            aria-label="Mostrar u ocultar contraseña"
           >
             <svg xmlns="http://www.w3.org/2000/svg" [class]="showPassword ? 'icon-eye-off' : 'icon-eye'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path *ngIf="!showPassword" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -63,22 +209,14 @@
         {{ serverError }}
       </div>
 
-      <button 
-        type="submit" 
-        class="login-btn" 
-        [disabled]="isLoading"
-      >
+      <button type="submit" class="login-btn" [disabled]="isLoading">
         <span class="btn-content" [class.loading]="isLoading">
           <svg *ngIf="isLoading" class="spinner" viewBox="0 0 50 50">
             <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
           </svg>
-          {{ isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+          {{ isLoading ? 'Iniciando sesión...' : 'Iniciar sesión' }}
         </span>
       </button>
-
-      <div class="login-footer">
-        <p>¿No tienes una cuenta? <a routerLink="/register">Regístrate</a></p>
-      </div>
     </form>
   </div>
-</div> 
+</div>

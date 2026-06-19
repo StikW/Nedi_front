@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
+import { DialogService } from '../../core/services/dialog.service';
 
 @Component({
   selector: 'app-password-modal',
@@ -25,7 +26,8 @@ export class PasswordModalComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private dialogService: DialogService,
   ) {
     this.passwordForm = this.fb.group({
       currentPassword: ['', [Validators.required]],
@@ -93,14 +95,21 @@ export class PasswordModalComponent implements OnInit {
           this.closeModal.emit();
           
           // Mostrar mensaje de éxito
-          alert('Contraseña cambiada exitosamente');
+          this.dialogService.alert({
+            title: 'Contraseña actualizada',
+            message: 'Tu contraseña se cambió exitosamente.',
+            variant: 'success',
+          });
         },
         error: (error) => {
           this.isSubmitting = false;
           console.error('Error al cambiar contraseña:', error);
-          
-          // Mostrar mensaje de error
-          alert(error.message || 'Error al cambiar la contraseña');
+
+          this.dialogService.alert({
+            title: 'Error',
+            message: error.message || 'No se pudo cambiar la contraseña.',
+            variant: 'danger',
+          });
         }
       });
     }

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -24,6 +24,7 @@ export class LoginComponent implements OnDestroy, OnInit {
   };
   isLoading: boolean = false;
   showPassword: boolean = false;
+  showLoginModal: boolean = false;
   serverError: string = '';
   private returnUrl: string = '/courses';
   private destroy$ = new Subject<void>();
@@ -35,8 +36,28 @@ export class LoginComponent implements OnDestroy, OnInit {
   ) {}
 
   ngOnInit() {
-    // Get return url from route parameters or default to '/instructor'
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/instructor';
+    if (
+      this.route.snapshot.queryParams['login'] === 'true' ||
+      this.route.snapshot.queryParams['returnUrl']
+    ) {
+      this.showLoginModal = true;
+    }
+  }
+
+  openLogin(): void {
+    this.showLoginModal = true;
+  }
+
+  closeLogin(): void {
+    if (this.isLoading) return;
+    this.showLoginModal = false;
+    this.serverError = '';
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeLogin();
   }
 
   ngOnDestroy() {

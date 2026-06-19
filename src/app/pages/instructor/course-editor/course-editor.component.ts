@@ -7,6 +7,7 @@ import { CoursesService } from '../courses.service';
 import { UploadsService, UploadProgress } from '../../../core/services/uploads.service';
 import { InstructorCourse, CourseStatus, CourseVisibility } from '../../../models/course.model';
 import { RuntimeConfigService } from '../../../core/services/runtime-config.service';
+import { DialogService } from '../../../core/services/dialog.service';
 
 @Component({
   selector: 'app-course-editor',
@@ -55,7 +56,8 @@ export class CourseEditorComponent implements OnInit, OnChanges {
     private uploadsService: UploadsService,
     private route: ActivatedRoute,
     private router: Router,
-    private runtimeConfig: RuntimeConfigService
+    private runtimeConfig: RuntimeConfigService,
+    private dialogService: DialogService,
   ) {
     this.courseForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(100)]],
@@ -351,14 +353,22 @@ export class CourseEditorComponent implements OnInit, OnChanges {
 
     // Validar tipo de archivo
     if (!file.type.startsWith('image/')) {
-      alert('Por favor selecciona un archivo de imagen válido.');
+      this.dialogService.alert({
+        title: 'Archivo no válido',
+        message: 'Por favor selecciona un archivo de imagen válido.',
+        variant: 'warning',
+      });
       return;
     }
 
     // Validar tamaño (5MB máximo)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
-      alert('La imagen debe ser menor a 5MB.');
+      this.dialogService.alert({
+        title: 'Imagen muy grande',
+        message: 'La imagen debe ser menor a 5MB.',
+        variant: 'warning',
+      });
       return;
     }
 
@@ -388,7 +398,11 @@ export class CourseEditorComponent implements OnInit, OnChanges {
     
     reader.onerror = (error) => {
       console.error('❌ Error leyendo archivo:', error);
-      alert('Error al procesar la imagen. Por favor intenta de nuevo.');
+      this.dialogService.alert({
+        title: 'Error',
+        message: 'No se pudo procesar la imagen. Por favor intenta de nuevo.',
+        variant: 'danger',
+      });
     };
     
     reader.readAsDataURL(file);

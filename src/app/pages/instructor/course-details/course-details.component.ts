@@ -18,6 +18,7 @@ import { UploadsService } from '../../../core/services/uploads.service';
 import { environment } from '../../../../environments/environment';
 import { getPublicAppOrigin } from '../../../core/utils/app-origin';
 import { RuntimeConfigService } from '../../../core/services/runtime-config.service';
+import { DialogService } from '../../../core/services/dialog.service';
 
 function effectiveCourseVisibility(course: InstructorCourse): 'public' | 'private' {
   return course.visibility === 'public' ? 'public' : 'private';
@@ -100,7 +101,8 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private coursesService: CoursesService,
     private uploadsService: UploadsService,
-    private runtimeConfig: RuntimeConfigService
+    private runtimeConfig: RuntimeConfigService,
+    private dialogService: DialogService,
   ) {}
 
   ngOnInit() {
@@ -1000,6 +1002,10 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
     this.agentConfig = config;
     this.showAgentConfigModal = false;
     // TODO: Guardar configuración en backend o estado global
-    alert('Agent configuration saved!');
+    this.dialogService.alert({
+      title: 'Configuración guardada',
+      message: 'La configuración del agente se guardó correctamente.',
+      variant: 'success',
+    });
   }
 } 

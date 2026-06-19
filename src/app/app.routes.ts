@@ -17,8 +17,8 @@ export const routes: Routes = [
   },
   {
     path: 'register',
-    loadComponent: () => import('./pages/auth/register/register.component').then(m => m.RegisterComponent),
-    canActivate: [NoAuthGuard]
+    redirectTo: 'login',
+    pathMatch: 'full',
   },
   {
     path: 'join/:courseId',

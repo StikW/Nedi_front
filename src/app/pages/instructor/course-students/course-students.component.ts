@@ -9,6 +9,7 @@ import { StudentsService } from '../../../core/services/students.service';
 import { PhoneFormatPipe } from '../../../shared/pipes/phone-format.pipe';
 import { validateStudentPhone } from '../../../shared/utils/phone-validation';
 import { extractApiErrorMessage } from '../../../shared/utils/api-error';
+import { DialogService } from '../../../core/services/dialog.service';
 
 @Component({
   selector: 'app-course-students',
@@ -72,7 +73,8 @@ export class CourseStudentsComponent implements OnInit, OnChanges {
 
   constructor(
     private route: ActivatedRoute,
-    private studentsService: StudentsService
+    private studentsService: StudentsService,
+    private dialogService: DialogService,
   ) {}
 
   ngOnInit(): void {
@@ -535,7 +537,11 @@ export class CourseStudentsComponent implements OnInit, OnChanges {
     }
     
     // Mostrar mensaje de éxito (puedes personalizar esto según tu UI)
-    alert(message);
+    this.dialogService.alert({
+      title: 'Importación completada',
+      message,
+      variant: result.errors?.length ? 'warning' : 'success',
+    });
   }
 
   // Métodos de paginación para estudiantes

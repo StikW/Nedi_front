@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { catchError, tap, map } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { User } from '../../models/user.model';
 import { PaginatedResponse } from '../../models/paginated-response.model';
 import { AuthService } from './auth.service';
@@ -50,7 +50,7 @@ export class UsersService {
   private loadMockUsers(): void {
     this.users = [
       {
-        id: 1,
+        id: '1',
         email: 'admin@example.com',
         name: 'Administrador Principal',
         role: 'admin',
@@ -58,7 +58,7 @@ export class UsersService {
         lastLogin: new Date()
       },
       {
-        id: 2,
+        id: '2',
         email: 'instructor1@example.com',
         name: 'María García',
         role: 'instructor',
@@ -70,7 +70,7 @@ export class UsersService {
         lastLogin: new Date('2024-01-20')
       },
       {
-        id: 3,
+        id: '3',
         email: 'instructor2@example.com',
         name: 'Carlos Rodríguez',
         role: 'instructor',
@@ -82,7 +82,7 @@ export class UsersService {
         lastLogin: new Date('2024-01-22')
       },
       {
-        id: 4,
+        id: '4',
         email: 'student1@example.com',
         name: 'Ana López',
         role: 'student',
@@ -90,7 +90,7 @@ export class UsersService {
         lastLogin: new Date('2024-02-15')
       },
       {
-        id: 5,
+        id: '5',
         email: 'student2@example.com',
         name: 'Pedro Martínez',
         role: 'student',
@@ -128,11 +128,8 @@ export class UsersService {
       tap((response) => {
         console.log('📡 Respuesta paginada de usuarios:', response);
         console.log('📊 Información de paginación de usuarios:', response.pagination);
-        // Actualizar la lista local con los nuevos datos
-        if (response.data && response.data.length > 0) {
-          this.users = response.data;
-          this.usersSubject.next(response.data);
-        }
+        this.users = response.data ?? [];
+        this.usersSubject.next(this.users);
       }),
       catchError((error: HttpErrorResponse) => {
         console.error('❌ Error obteniendo usuarios paginados:', error);
@@ -164,11 +161,8 @@ export class UsersService {
         console.log('📡 Respuesta paginada de búsqueda:', response);
         console.log('📊 Información de paginación de búsqueda:', response.pagination);
         console.log('🔍 Patrón de búsqueda:', searchPattern);
-        // Actualizar la lista local con los nuevos datos
-        if (response.data && response.data.length > 0) {
-          this.users = response.data;
-          this.usersSubject.next(response.data);
-        }
+        this.users = response.data ?? [];
+        this.usersSubject.next(this.users);
       }),
       catchError((error: HttpErrorResponse) => {
         console.error('❌ Error en búsqueda de usuarios:', error);
@@ -178,24 +172,10 @@ export class UsersService {
   }
 
   /**
-   * Recargar usuarios desde el backend
+   * Recargar la primera página de usuarios (paginado).
    */
-  refreshUsers(): Observable<User[]> {
-    return this.http.get<{users: User[]}>(`${this.apiUrl}/users`, {
-      headers: this.authService.getAuthHeaders()
-    }).pipe(
-      tap(response => {
-        if (response.users && response.users.length > 0) {
-          this.users = response.users;
-          this.usersSubject.next(response.users);
-        } 
-      }),
-      map(response => response.users),
-      catchError((error: HttpErrorResponse) => {
-        console.error('Error recargando usuarios:', error);
-        return throwError(() => new Error('Error al recargar los usuarios'));
-      })
-    );
+  refreshUsers(sortOrder: 'asc' | 'desc' = 'asc'): Observable<PaginatedResponse<User>> {
+    return this.getUsersPaginated(undefined, sortOrder);
   }
 
   /**
@@ -223,7 +203,7 @@ export class UsersService {
   /**
    * Actualizar un usuario existente
    */
-  updateUser(id: number, userData: Partial<User>): Observable<User | null> {
+  updateUser(id: string, userData: Partial<User>): Observable<User | null> {
     return this.http.put<User>(`${this.apiUrl}/users/${id}`, userData, {
       headers: this.authService.getAuthHeaders()
     }).pipe(
@@ -244,10 +224,11 @@ export class UsersService {
   /**
    * Eliminar un usuario
    */
-  deleteUser(id: number): Observable<boolean> {
-    return this.http.delete<boolean>(`${this.apiUrl}/users/${id}`, {
-      headers: this.authService.getAuthHeaders()
-    }).pipe(
+  deleteUser(id: string): Observable<{ userId: string; deletedCoursesCount: number; evolutionInstanceDeleted: boolean }> {
+    return this.http.delete<{ userId: string; deletedCoursesCount: number; evolutionInstanceDeleted: boolean }>(
+      `${this.apiUrl}/users/${id}`,
+      { headers: this.authService.getAuthHeaders() },
+    ).pipe(
       tap(() => {
         this.users = this.users.filter(user => user.id !== id);
         this.usersSubject.next(this.users);
@@ -262,7 +243,7 @@ export class UsersService {
   /**
    * Obtener un usuario por ID
    */
-  getUserById(id: number): Observable<User | null> {
+  getUserById(id: string): Observable<User | null> {
     return this.http.get<User>(`${this.apiUrl}/users/${id}`, {
       headers: this.authService.getAuthHeaders()
     }).pipe(

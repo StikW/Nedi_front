@@ -1,10 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ModuleCardComponent } from './module-card.component';
 import { Module } from '../../models/module.model';
+import { DialogService } from '../../core/services/dialog.service';
 
 describe('ModuleCardComponent', () => {
   let component: ModuleCardComponent;
   let fixture: ComponentFixture<ModuleCardComponent>;
+  let dialogService: jasmine.SpyObj<DialogService>;
 
   const mockModule: Module = {
     id: 1,
@@ -13,8 +15,11 @@ describe('ModuleCardComponent', () => {
   };
 
   beforeEach(async () => {
+    dialogService = jasmine.createSpyObj('DialogService', ['confirm']);
+
     await TestBed.configureTestingModule({
-      imports: [ModuleCardComponent]
+      imports: [ModuleCardComponent],
+      providers: [{ provide: DialogService, useValue: dialogService }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ModuleCardComponent);
@@ -122,22 +127,24 @@ describe('ModuleCardComponent', () => {
     expect(mockEvent.stopPropagation).toHaveBeenCalled();
   });
 
-  it('should show confirmation dialog before deleting module', () => {
-    spyOn(window, 'confirm').and.returnValue(true);
+  it('should show confirmation dialog before deleting module', async () => {
+    dialogService.confirm.and.returnValue(Promise.resolve(true));
     spyOn(component.deleteModule, 'emit');
-    
+
     component.onDelete(new Event('click'));
-    
-    expect(window.confirm).toHaveBeenCalledWith('¿Estás seguro de que quieres eliminar este módulo?');
+    await fixture.whenStable();
+
+    expect(dialogService.confirm).toHaveBeenCalled();
     expect(component.deleteModule.emit).toHaveBeenCalledWith(1);
   });
 
-  it('should not emit delete event when confirmation is cancelled', () => {
-    spyOn(window, 'confirm').and.returnValue(false);
+  it('should not emit delete event when confirmation is cancelled', async () => {
+    dialogService.confirm.and.returnValue(Promise.resolve(false));
     spyOn(component.deleteModule, 'emit');
-    
+
     component.onDelete(new Event('click'));
-    
+    await fixture.whenStable();
+
     expect(component.deleteModule.emit).not.toHaveBeenCalled();
   });
 });
