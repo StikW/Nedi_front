@@ -531,12 +531,6 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: async (uploadResults) => {
-        try {
-          await firstValueFrom(this.uploadsService.confirmModuleFileUpload(this.courseId!, moduleId));
-        } catch (error) {
-          console.error('Error confirmando vectorización del módulo:', error);
-        }
-
         const baseUrl = this.runtimeConfig.getS3ModulesBaseUrl();
         const newResources: ModuleResource[] = uploadResults.map((result, index) => ({
           name: files[index].name,
@@ -544,16 +538,30 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
           size: files[index].size
         }));
 
-        // Combinar recursos existentes con nuevos recursos
         const allResources = [...existingResources, ...newResources];
-
-        // Actualizar el módulo con todos los recursos
         const updatedModuleData = {
           ...moduleFormData,
           resources: allResources
         };
 
-        this.updateModuleOnly(updatedModuleData);
+        try {
+          // 1. Actualizar módulo (backend elimina PDFs que ya no están en resources)
+          await firstValueFrom(
+            this.coursesService.updateModule(this.courseId!, moduleId, updatedModuleData),
+          );
+          // 2. Re-vectorizar solo con los archivos que quedaron en S3
+          await firstValueFrom(this.uploadsService.confirmModuleFileUpload(this.courseId!, moduleId));
+
+          const moduleIndex = this.modules.findIndex(m => m.id === moduleId);
+          if (moduleIndex !== -1) {
+            this.modules[moduleIndex] = { ...this.modules[moduleIndex], ...updatedModuleData };
+          }
+          this.closeEditModuleModal();
+          this.isUpdatingModule = false;
+        } catch (error) {
+          console.error('Error actualizando módulo con recursos:', error);
+          this.isUpdatingModule = false;
+        }
       },
       error: (error) => {
         console.error('Error subiendo recursos del módulo:', error);
@@ -576,11 +584,19 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (updatedModule) => {
-        // Actualizar el módulo en la lista local
         const index = this.modules.findIndex(m => m.id === updatedModule.id);
         if (index !== -1) {
           this.modules[index] = updatedModule;
         }
+
+        if (moduleFormData.resources !== undefined && this.courseId) {
+          this.uploadsService.confirmModuleFileUpload(this.courseId, updatedModule.id).pipe(
+            takeUntil(this.destroy$)
+          ).subscribe({
+            error: (err) => console.error('Error re-vectorizando módulo tras actualizar recursos:', err),
+          });
+        }
+
         this.closeEditModuleModal();
         this.isUpdatingModule = false;
       },

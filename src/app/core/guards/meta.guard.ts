@@ -14,7 +14,6 @@ export const MetaGuard: CanActivateFn = () => {
       if (user && user.role === 'meta') {
         if (user.isActive === false) {
           authService.logout();
-          router.navigate(['/login']);
           return false;
         }
         return true;

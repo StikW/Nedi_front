@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
@@ -14,7 +15,10 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+  ) {
     // Check if user is already logged in from localStorage
     const storedUser = localStorage.getItem(this.STORAGE_KEY);
     if (storedUser) {
@@ -102,6 +106,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(this.STORAGE_KEY);
     this.currentUserSubject.next(null);
+    void this.router.navigate(['/login']);
   }
 
   /**

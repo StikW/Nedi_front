@@ -130,6 +130,15 @@ export class ModuleModalComponent implements OnInit, OnChanges {
       this.fileError = null;
       this.selectedFiles = files;
       this.moduleData.files = this.selectedFiles;
+
+      // Al subir un PDF nuevo en edición, reemplazar los anteriores (no acumular)
+      if (this.mode === 'edit' && files.length > 0) {
+        this.existingResources.forEach((_, index) => {
+          if (!this.resourcesToDelete.includes(index)) {
+            this.resourcesToDelete.push(index);
+          }
+        });
+      }
     }
   }
 

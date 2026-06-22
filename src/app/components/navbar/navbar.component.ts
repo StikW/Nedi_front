@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { User } from '../../models/user.model';
@@ -15,10 +15,7 @@ export class NavbarComponent implements OnInit {
   showMenu: boolean = false;
   currentUser: User | null = null;
 
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
+  constructor(private authService: AuthService) {}
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
@@ -29,7 +26,6 @@ export class NavbarComponent implements OnInit {
   logout() {
     this.authService.logout();
     this.showMenu = false;
-    this.router.navigate(['/login']);
   }
 
   /**
