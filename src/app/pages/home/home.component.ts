@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { getDefaultRouteForRole } from '../../core/utils/role-routes';
 import { take } from 'rxjs/operators';
 
 @Component({
@@ -59,10 +60,8 @@ export class HomeComponent implements OnInit {
   private checkAuthAndRedirect(): void {
     this.authService.currentUser$.pipe(take(1)).subscribe(user => {
       if (user) {
-        // Usuario autenticado - redirigir al dashboard del instructor
-        this.router.navigate(['/instructor']);
+        this.router.navigate([getDefaultRouteForRole(user.role)]);
       } else {
-        // Usuario no autenticado - redirigir al login
         this.router.navigate(['/login']);
       }
     });

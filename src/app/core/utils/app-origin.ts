@@ -8,3 +8,17 @@ export function getPublicAppOrigin(fallback: string): string {
   }
   return fallback.replace(/\/$/, '');
 }
+
+/**
+ * Base URL pública de la API (absoluta).
+ * En producción: https://tututor.co/api (Nginx → NestJS).
+ * En local: http://localhost:3000
+ */
+export function getPublicApiBaseUrl(apiUrl: string, fallbackOrigin: string): string {
+  if (apiUrl.startsWith('http://') || apiUrl.startsWith('https://')) {
+    return apiUrl.replace(/\/$/, '');
+  }
+  const origin = getPublicAppOrigin(fallbackOrigin);
+  const path = apiUrl.startsWith('/') ? apiUrl : `/${apiUrl}`;
+  return `${origin}${path}`.replace(/\/$/, '');
+}

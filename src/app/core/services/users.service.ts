@@ -179,12 +179,11 @@ export class UsersService {
   }
 
   /**
-   * Crear un nuevo usuario instructor usando el endpoint de register
+   * Crear un nuevo usuario (instructor o meta) usando el endpoint de register
    */
   createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin'>): Observable<User> {
-    // Validar que solo se puedan crear instructores
-    if (userData.role !== 'instructor') {
-      return throwError(() => new Error('Solo se pueden crear usuarios de tipo instructor'));
+    if (userData.role !== 'instructor' && userData.role !== 'meta') {
+      return throwError(() => new Error('Solo se pueden crear usuarios de tipo instructor o meta'));
     }
 
     // Usar el endpoint de register del auth service con autenticación

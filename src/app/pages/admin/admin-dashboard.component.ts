@@ -160,7 +160,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const roleLabels: Record<string, string> = {
       'admin': 'Administrador',
       'instructor': 'Instructor',
-      'student': 'Estudiante'
+      'student': 'Estudiante',
+      'meta': 'Meta',
     };
     return roleLabels[role] || role;
   }
@@ -169,7 +170,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const roleColors: Record<string, string> = {
       'admin': 'bg-red-100 text-red-800',
       'instructor': 'bg-blue-100 text-blue-800',
-      'student': 'bg-green-100 text-green-800'
+      'student': 'bg-green-100 text-green-800',
+      'meta': 'bg-emerald-100 text-emerald-800',
     };
     return roleColors[role] || 'bg-gray-100 text-gray-800';
   }

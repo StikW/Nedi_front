@@ -1,0 +1,51 @@
+<div class="meta-page-header">
+  <h2>Logs</h2>
+  <p>Registro real de solicitudes a Graph API (Meta)</p>
+</div>
+
+<div *ngIf="isLoading" style="color: #667781;">Cargando logs...</div>
+
+<div class="meta-card" *ngIf="!isLoading">
+  <table class="meta-table">
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Método</th>
+        <th>Endpoint</th>
+        <th>Estado HTTP</th>
+        <th>Detalle</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let log of logs">
+        <td>{{ log.timestamp | date:'short' }}</td>
+        <td><code>{{ log.method }}</code></td>
+        <td style="font-size: 0.8125rem;">{{ log.endpoint }}</td>
+        <td>
+          <span class="http-status" [class]="statusClass(log.status)">{{ log.status }}</span>
+        </td>
+        <td>
+          <details>
+            <summary>Ver</summary>
+            <div class="log-detail">
+              <strong>Request:</strong>
+              <pre>{{ log.request | json }}</pre>
+              <strong>Response:</strong>
+              <pre>{{ log.response | json }}</pre>
+            </div>
+          </details>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="meta-card empty-state" *ngIf="!isLoading && logs.length === 0">
+  <p>No hay logs de API aún.</p>
+  <p class="hint">Los logs se generan al probar la conexión, sincronizar plantillas o enviar mensajes.</p>
+</div>
+
+<style>
+  .empty-state { text-align: center; padding: 2rem; color: #667781; }
+  .empty-state .hint { font-size: 0.875rem; margin-top: 0.5rem; }
+</style>

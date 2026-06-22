@@ -4,6 +4,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { getDefaultRouteForRole } from '../../../core/utils/role-routes';
 
 interface LoginForm {
   email: string;
@@ -81,8 +82,10 @@ export class LoginComponent implements OnDestroy, OnInit {
     this.authService.login(this.formData.email, this.formData.password)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
-          this.router.navigateByUrl(this.returnUrl);
+        next: (user) => {
+          const defaultRoute = getDefaultRouteForRole(user.role);
+          const target = this.returnUrl.startsWith(defaultRoute) ? this.returnUrl : defaultRoute;
+          this.router.navigateByUrl(target);
         },
         error: (error) => {
           console.error('Login failed:', error);

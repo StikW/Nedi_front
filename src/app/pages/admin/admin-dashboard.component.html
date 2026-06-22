@@ -18,7 +18,7 @@
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-        Agregar Instructor
+        Agregar Usuario
       </button>
     </div>
   </div>
@@ -75,6 +75,9 @@
             <div class="user-details">
               <span class="role-badge" [class]="getRoleColor(user.role)">
                 {{ getRoleLabel(user.role) }}
+              </span>
+              <span *ngIf="user.role === 'meta'" class="role-badge" [class]="user.isActive !== false ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'">
+                {{ user.isActive !== false ? 'Activo' : 'Inactivo' }}
               </span>
             </div>
           </div>

@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { map, take } from 'rxjs/operators';
 import { inject } from '@angular/core';
+import { getDefaultRouteForRole } from '../utils/role-routes';
 
 export const AuthGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
@@ -11,15 +11,20 @@ export const AuthGuard: CanActivateFn = () => {
   return authService.currentUser$.pipe(
     take(1),
     map(user => {
-      if (user) {
-        return true;
-      } else {
-        // Redirect to login page with return url
+      if (!user) {
         router.navigate(['/login'], {
           queryParams: { returnUrl: router.url }
         });
         return false;
       }
+
+      // Usuarios Meta solo pueden acceder al panel Meta
+      if (user.role === 'meta') {
+        router.navigate(['/meta']);
+        return false;
+      }
+
+      return true;
     })
   );
 }; 

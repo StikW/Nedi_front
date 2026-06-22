@@ -9,7 +9,9 @@ export interface User {
   /** User's full name */
   name: string;
   /** User's role in the system */
-  role: 'student' | 'instructor' | 'admin';
+  role: 'student' | 'instructor' | 'admin' | 'meta';
+  /** Whether the account is active */
+  isActive?: boolean;
   /**
    * Phone number in E.164 format (e.g. +573001234567).
    * Solo aplica a instructores: es el n\u00famero del "tutor NEDI" que se inserta

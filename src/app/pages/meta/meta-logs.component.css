@@ -1,0 +1,38 @@
+.http-status {
+  font-weight: 700;
+  font-size: 0.8125rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.http-status.status-ok {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.http-status.status-error {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.log-detail pre {
+  background: #111b21;
+  color: #25d366;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  margin: 0.35rem 0 0.75rem;
+}
+
+details summary {
+  cursor: pointer;
+  color: #25d366;
+  font-size: 0.8125rem;
+}
+
+code {
+  background: #f0f2f5;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+}

@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './pages/home/home.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { AdminGuard } from './core/guards/admin.guard';
 import { InstructorGuard } from './core/guards/instructor.guard';
+import { MetaGuard } from './core/guards/meta.guard';
 import { NoAuthGuard } from './core/guards/no-auth.guard';
 
 export const routes: Routes = [
@@ -80,6 +80,22 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/admin/admin-dashboard.component').then(m => m.AdminDashboardComponent)
       }
     ]
+  },
+  {
+    path: 'meta',
+    canActivate: [MetaGuard],
+    loadComponent: () => import('./pages/meta/meta-layout.component').then(m => m.MetaLayoutComponent),
+    children: [
+      { path: '', loadComponent: () => import('./pages/meta/meta-dashboard.component').then(m => m.MetaDashboardComponent) },
+      { path: 'contacts', loadComponent: () => import('./pages/meta/meta-contacts.component').then(m => m.MetaContactsComponent) },
+      { path: 'templates', loadComponent: () => import('./pages/meta/meta-templates.component').then(m => m.MetaTemplatesComponent) },
+      { path: 'messages', loadComponent: () => import('./pages/meta/meta-messages.component').then(m => m.MetaMessagesComponent) },
+      { path: 'conversations', loadComponent: () => import('./pages/meta/meta-conversations.component').then(m => m.MetaConversationsComponent) },
+      { path: 'webhooks', loadComponent: () => import('./pages/meta/meta-webhooks.component').then(m => m.MetaWebhooksComponent) },
+      { path: 'api-config', loadComponent: () => import('./pages/meta/meta-api-config.component').then(m => m.MetaApiConfigComponent) },
+      { path: 'logs', loadComponent: () => import('./pages/meta/meta-logs.component').then(m => m.MetaLogsComponent) },
+      { path: 'settings', loadComponent: () => import('./pages/meta/meta-settings.component').then(m => m.MetaSettingsComponent) },
+    ],
   },
   {
     path: '**',

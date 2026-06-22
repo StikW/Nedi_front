@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { map, take } from 'rxjs/operators';
 import { inject } from '@angular/core';
+import { getDefaultRouteForRole } from '../utils/role-routes';
 
 export const InstructorGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
@@ -14,13 +14,8 @@ export const InstructorGuard: CanActivateFn = () => {
       if (user && user.role === 'instructor') {
         return true;
       } else {
-        // Redirect to appropriate dashboard based on user role
         if (user) {
-          if (user.role === 'admin') {
-            router.navigate(['/admin']);
-          } else {
-            router.navigate(['/']);
-          }
+          router.navigate([getDefaultRouteForRole(user.role)]);
         } else {
           router.navigate(['/login'], {
             queryParams: { returnUrl: router.url }

@@ -1,0 +1,50 @@
+<div class="meta-page-header">
+  <h2>Conversaciones</h2>
+  <p>Mensajes reales enviados y recibidos vía WhatsApp Cloud API</p>
+</div>
+
+<div class="chat-layout" *ngIf="!isLoading && conversations.length > 0">
+  <div class="conv-list meta-card">
+    <div
+      *ngFor="let c of conversations"
+      class="conv-item"
+      [class.active]="c.id === selectedId"
+      (click)="selectConversation(c.id)">
+      <div class="conv-header">
+        <strong>{{ c.contactName }}</strong>
+        <span *ngIf="c.unread" class="unread-badge">{{ c.unread }}</span>
+      </div>
+      <p>{{ c.lastMessage }}</p>
+      <small>{{ c.phone }}</small>
+    </div>
+  </div>
+
+  <div class="chat-panel meta-card">
+    <div class="chat-header" *ngIf="selectedConversation">
+      <strong>{{ selectedConversation.contactName }}</strong>
+      <span>{{ selectedConversation.phone }}</span>
+    </div>
+    <div class="chat-messages">
+      <div
+        *ngFor="let m of messages"
+        class="message"
+        [class.sent]="m.direction === 'sent'"
+        [class.received]="m.direction === 'received'">
+        {{ m.body }}
+        <small>{{ m.timestamp | date:'short' }}</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="meta-card empty-state" *ngIf="!isLoading && conversations.length === 0">
+  <p>No hay conversaciones aún.</p>
+  <p class="hint">Envía un mensaje desde <strong>Envío de mensajes</strong> o recibe uno por el webhook configurado en Meta.</p>
+</div>
+
+<div *ngIf="isLoading" style="color: #667781;">Cargando conversaciones...</div>
+
+<style>
+  .empty-state { text-align: center; padding: 2rem; color: #667781; }
+  .empty-state .hint { font-size: 0.875rem; margin-top: 0.5rem; }
+</style>

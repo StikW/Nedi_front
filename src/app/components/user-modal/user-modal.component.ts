@@ -24,6 +24,7 @@ export class UserModalComponent implements OnInit {
     email: '',
     role: 'instructor',
     password: '',
+    isActive: true,
     clientIdApp: '',
     clientSecretApp: '',
     businessAccountId: '',
@@ -32,12 +33,13 @@ export class UserModalComponent implements OnInit {
   };
 
   roles = [
-    { value: 'instructor', label: 'Instructor' }
+    { value: 'instructor', label: 'Instructor' },
+    { value: 'meta', label: 'Meta' },
   ];
 
   ngOnInit() {
     if (this.mode === 'edit' && this.user) {
-      this.formData = { ...this.user };
+      this.formData = { ...this.user, isActive: this.user.isActive !== false };
     } else {
       this.resetForm();
     }
@@ -45,10 +47,18 @@ export class UserModalComponent implements OnInit {
 
   ngOnChanges() {
     if (this.mode === 'edit' && this.user) {
-      this.formData = { ...this.user };
+      this.formData = { ...this.user, isActive: this.user.isActive !== false };
     } else {
       this.resetForm();
     }
+  }
+
+  get isInstructor(): boolean {
+    return this.formData.role === 'instructor';
+  }
+
+  get isMeta(): boolean {
+    return this.formData.role === 'meta';
   }
 
   private resetForm() {
@@ -57,6 +67,7 @@ export class UserModalComponent implements OnInit {
       email: '',
       role: 'instructor',
       password: '',
+      isActive: true,
       clientIdApp: '',
       clientSecretApp: '',
       businessAccountId: '',
@@ -68,12 +79,20 @@ export class UserModalComponent implements OnInit {
   onSubmit() {
     if (this.isFormValid()) {
       const dataToSubmit = { ...this.formData };
-      
-      // En modo edición, si la contraseña está vacía, no la enviamos
+
       if (this.mode === 'edit' && !dataToSubmit.password?.trim()) {
         delete dataToSubmit.password;
       }
-      
+
+      // Meta users don't need instructor integration fields
+      if (this.isMeta) {
+        delete dataToSubmit.clientIdApp;
+        delete dataToSubmit.clientSecretApp;
+        delete dataToSubmit.businessAccountId;
+        delete dataToSubmit.accessToken;
+        delete dataToSubmit.apiKey;
+      }
+
       this.submitUser.emit(dataToSubmit);
     }
   }
@@ -84,29 +103,35 @@ export class UserModalComponent implements OnInit {
   }
 
   isFormValid(): boolean {
-    const requiredFields = [
+    const baseFields = [
       this.formData.name?.trim(),
       this.formData.email?.trim(),
-      this.formData.clientIdApp?.trim(),
-      this.formData.clientSecretApp?.trim(),
-      this.formData.businessAccountId?.trim(),
-      this.formData.accessToken?.trim(),
-      this.formData.apiKey?.trim()
     ];
-    
-    // En modo creación, la contraseña es obligatoria
+
     if (this.mode === 'create') {
-      requiredFields.push(this.formData.password?.trim());
+      baseFields.push(this.formData.password?.trim());
     }
-    
-    return requiredFields.every(field => !!field);
+
+    if (this.isInstructor) {
+      baseFields.push(
+        this.formData.clientIdApp?.trim(),
+        this.formData.clientSecretApp?.trim(),
+        this.formData.businessAccountId?.trim(),
+        this.formData.accessToken?.trim(),
+        this.formData.apiKey?.trim(),
+      );
+    }
+
+    return baseFields.every(field => !!field);
   }
 
   get modalTitle(): string {
-    return this.mode === 'create' ? 'Agregar Instructor' : 'Editar Usuario';
+    if (this.mode === 'edit') return 'Editar Usuario';
+    return this.isMeta ? 'Agregar Usuario Meta' : 'Agregar Instructor';
   }
 
   get submitButtonText(): string {
-    return this.mode === 'create' ? 'Crear Instructor' : 'Actualizar Usuario';
+    if (this.mode === 'edit') return 'Actualizar Usuario';
+    return this.isMeta ? 'Crear Usuario Meta' : 'Crear Instructor';
   }
 }

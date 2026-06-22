@@ -1,0 +1,37 @@
+<div class="meta-page-header">
+  <h2>Configuración</h2>
+  <p>Ajustes de tu cuenta Meta</p>
+</div>
+
+<div class="meta-card" style="max-width: 480px;" *ngIf="user">
+  <div class="setting-row">
+    <span>Nombre</span>
+    <strong>{{ user.name }}</strong>
+  </div>
+  <div class="setting-row">
+    <span>Correo</span>
+    <strong>{{ user.email }}</strong>
+  </div>
+  <div class="setting-row">
+    <span>Rol</span>
+    <strong>Meta</strong>
+  </div>
+  <div class="setting-row">
+    <span>Estado</span>
+    <span class="meta-badge active">{{ user.isActive !== false ? 'Activo' : 'Inactivo' }}</span>
+  </div>
+</div>
+
+<style>
+  .setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9edef;
+    font-size: 0.875rem;
+  }
+  .setting-row span:first-child {
+    color: #667781;
+  }
+</style>

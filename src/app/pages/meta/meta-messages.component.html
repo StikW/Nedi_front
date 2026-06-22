@@ -1,0 +1,52 @@
+<div class="meta-page-header">
+  <h2>Envío de mensajes</h2>
+  <p>Selecciona un contacto y una plantilla para enviar un mensaje</p>
+</div>
+
+<div class="messages-layout">
+  <div class="meta-card panel">
+    <h3>1. Buscar contacto</h3>
+    <div class="meta-form-group">
+      <input [(ngModel)]="contactSearch" placeholder="Buscar por nombre o teléfono...">
+    </div>
+    <div class="contact-list">
+      <label *ngFor="let c of filteredContacts" class="contact-item">
+        <input type="radio" name="contact" [value]="c.id" [(ngModel)]="selectedContactId">
+        <div>
+          <strong>{{ c.name }}</strong>
+          <span>{{ c.phone }}</span>
+        </div>
+      </label>
+    </div>
+
+    <h3>2. Seleccionar plantilla</h3>
+    <div class="meta-form-group">
+      <select [(ngModel)]="selectedTemplateId">
+        <option value="">— Seleccionar —</option>
+        <option *ngFor="let t of approvedTemplates" [value]="t.id">{{ t.name }} ({{ t.language }})</option>
+      </select>
+    </div>
+
+    <div *ngIf="selectedTemplate" class="template-preview">
+      <strong>Vista previa:</strong>
+      <p>{{ selectedTemplate.content }}</p>
+    </div>
+
+    <h3>3. Variables (JSON)</h3>
+    <div class="meta-form-group">
+      <textarea [(ngModel)]="variablesText" placeholder='{"1": "María", "2": "Curso Excel"}'></textarea>
+    </div>
+
+    <button
+      class="meta-btn-primary send-btn"
+      (click)="send()"
+      [disabled]="!selectedContactId || !selectedTemplateId || isSending">
+      {{ isSending ? 'Enviando...' : 'Enviar mensaje' }}
+    </button>
+  </div>
+
+  <div class="meta-card panel" *ngIf="result">
+    <h3>Resultado del envío</h3>
+    <pre>{{ result | json }}</pre>
+  </div>
+</div>

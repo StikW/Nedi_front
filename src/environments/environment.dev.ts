@@ -3,5 +3,6 @@ export const environment = {
     /** Mismo origen en el servidor (tututor.co / www.tututor.co) */
     apiUrl: '/api',
     apiVersion: 'v1',
-    publicAppUrl: 'https://tututor.co'
+    publicAppUrl: 'https://tututor.co',
+    metaWebhookUrl: 'https://tututor.co/api/meta/webhook',
   };

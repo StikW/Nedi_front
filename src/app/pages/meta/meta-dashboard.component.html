@@ -1,0 +1,49 @@
+<div class="meta-page-header">
+  <h2>Dashboard</h2>
+  <p>Indicadores en tiempo real de tu integración WhatsApp Business</p>
+</div>
+
+<div *ngIf="isLoading" class="loading">Cargando indicadores...</div>
+
+<div *ngIf="!isLoading && stats" class="stats-grid">
+  <div class="stat-card">
+    <span class="stat-label">Mensajes enviados hoy</span>
+    <span class="stat-value">{{ stats.messagesSentToday }}</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Mensajes recibidos hoy</span>
+    <span class="stat-value">{{ stats.messagesReceived }}</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Conversaciones activas (7 días)</span>
+    <span class="stat-value">{{ stats.activeConversations }}</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Plantillas aprobadas</span>
+    <span class="stat-value">{{ stats.availableTemplates }}</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Estado del webhook</span>
+    <span class="stat-value" [class]="statusClass(stats.webhookStatus)">
+      {{ webhookLabel(stats.webhookStatus) }}
+    </span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Conexión con Meta</span>
+    <span class="stat-value" [class]="statusClass(stats.metaConnectionStatus)">
+      {{ connectionLabel(stats.metaConnectionStatus) }}
+    </span>
+    <small *ngIf="stats.phoneNumber" class="stat-extra">{{ stats.phoneNumber }}</small>
+    <small *ngIf="stats.connectionError" class="stat-error">{{ stats.connectionError }}</small>
+  </div>
+</div>
+
+<div class="meta-card setup-hint" *ngIf="!isLoading && stats?.metaConnectionStatus !== 'connected'">
+  <h3>Configuración requerida</h3>
+  <ol>
+    <li>Completa las credenciales en <strong>Configuración API</strong>.</li>
+    <li>Registra el webhook en Meta Developers: <code>{{ metaWebhookUrl }}</code></li>
+    <li>Sincroniza plantillas desde Meta en la sección <strong>Plantillas</strong>.</li>
+    <li>Envía un mensaje de prueba desde <strong>Envío de mensajes</strong>.</li>
+  </ol>
+</div>

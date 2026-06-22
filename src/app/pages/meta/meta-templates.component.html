@@ -1,0 +1,84 @@
+<div class="meta-page-header">
+  <h2>Plantillas</h2>
+  <p>Administra plantillas sincronizadas desde Meta Business</p>
+</div>
+
+<div style="margin-bottom: 1rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+  <button class="meta-btn-primary" (click)="openCreate()">+ Nueva plantilla</button>
+  <button class="meta-btn-secondary" (click)="syncFromMeta()" [disabled]="isSyncing">
+    {{ isSyncing ? 'Sincronizando...' : 'Sincronizar desde Meta' }}
+  </button>
+</div>
+
+<p *ngIf="syncMessage" class="sync-msg">{{ syncMessage }}</p>
+
+<div class="meta-card" *ngIf="!isLoading">
+  <table class="meta-table">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Categoría</th>
+        <th>Idioma</th>
+        <th>Estado</th>
+        <th>Contenido</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let t of templates">
+        <td>{{ t.name }}</td>
+        <td>{{ t.category }}</td>
+        <td>{{ t.language }}</td>
+        <td><span class="meta-badge" [class]="t.status">{{ statusLabel(t.status) }}</span></td>
+        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.content }}</td>
+        <td>
+          <button class="meta-btn-secondary" style="margin-right: 0.5rem; padding: 0.35rem 0.75rem;" (click)="openEdit(t)">Editar</button>
+          <button class="meta-btn-danger" (click)="deleteTemplate(t)">Eliminar</button>
+        </td>
+      </tr>
+      <tr *ngIf="templates.length === 0">
+        <td colspan="6" style="text-align: center; color: #667781;">No hay plantillas</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="meta-modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="meta-modal" (click)="$event.stopPropagation()">
+    <h3>{{ editing ? 'Editar plantilla' : 'Nueva plantilla' }}</h3>
+    <div class="meta-form-group">
+      <label>Nombre *</label>
+      <input [(ngModel)]="form.name">
+    </div>
+    <div class="meta-form-group">
+      <label>Categoría *</label>
+      <select [(ngModel)]="form.category">
+        <option value="MARKETING">Marketing</option>
+        <option value="UTILITY">Utilidad</option>
+        <option value="AUTHENTICATION">Autenticación</option>
+      </select>
+    </div>
+    <div class="meta-form-group">
+      <label>Idioma *</label>
+      <input [(ngModel)]="form.language" placeholder="es">
+    </div>
+    <div class="meta-form-group">
+      <label>Estado</label>
+      <select [(ngModel)]="form.status">
+        <option value="approved">Aprobada</option>
+        <option value="pending">Pendiente</option>
+        <option value="rejected">Rechazada</option>
+      </select>
+    </div>
+    <div class="meta-form-group">
+      <label>Contenido *</label>
+      <textarea [(ngModel)]="form.content" placeholder="Hola {nombre}, tu curso {curso} está listo."></textarea>
+    </div>
+    <div class="meta-modal-actions">
+      <button class="meta-btn-secondary" (click)="closeModal()">Cancelar</button>
+      <button class="meta-btn-primary" (click)="save()" [disabled]="!form.name || !form.content">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="meta-toast error" *ngIf="toast">{{ toast }}</div>
