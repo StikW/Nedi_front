@@ -547,20 +547,15 @@ export class CoursesService {
   }
 
   private normalizeResourceUrl(url: string): string {
-    if (!url || !url.includes('.s3.amazonaws.com/')) return url;
+    if (!url || !url.includes('amazonaws.com/')) return url;
     try {
-      const matchedHost = url.split('.s3.amazonaws.com/')[0] + '.s3.amazonaws.com';
-      const key = url.slice(matchedHost.length + 1);
-      const targetBaseUrl = this.isModulesResource(url)
+      const key = url.replace(/^https?:\/\/[^/]+\//, '');
+      const targetBaseUrl = key.includes('/modules/')
         ? this.runtimeConfig.getS3ModulesBaseUrl()
         : this.runtimeConfig.getS3ResourcesBaseUrl();
       return `${targetBaseUrl}/${key}`;
     } catch {
       return url;
     }
-  }
-
-  private isModulesResource(url: string): boolean {
-    return url.includes('/modules/') || url.includes('learning-modules');
   }
 } 

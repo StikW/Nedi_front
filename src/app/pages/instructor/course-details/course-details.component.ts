@@ -392,7 +392,7 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
         try {
           await firstValueFrom(forkJoin(confirmObservables));
           // Crear array de recursos con las URLs de los archivos subidos
-          const baseUrl = this.runtimeConfig.getS3ResourcesBaseUrl();
+          const baseUrl = this.runtimeConfig.getS3ModulesBaseUrl();
           const resources: ModuleResource[] = uploadResults.map((result, index) => ({
             name: files[index].name,
             url: `${baseUrl}/${result.fileKey || ''}`,
@@ -530,9 +530,14 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
     forkJoin(uploadObservables).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
-      next: (uploadResults) => {
-        // Crear array de recursos con las URLs de los archivos subidos
-        const baseUrl = this.runtimeConfig.getS3ResourcesBaseUrl();
+      next: async (uploadResults) => {
+        try {
+          await firstValueFrom(this.uploadsService.confirmModuleFileUpload(this.courseId!, moduleId));
+        } catch (error) {
+          console.error('Error confirmando vectorización del módulo:', error);
+        }
+
+        const baseUrl = this.runtimeConfig.getS3ModulesBaseUrl();
         const newResources: ModuleResource[] = uploadResults.map((result, index) => ({
           name: files[index].name,
           url: `${baseUrl}/${result.fileKey || ''}`,
