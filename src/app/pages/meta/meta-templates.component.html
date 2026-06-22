@@ -1,6 +1,6 @@
 <div class="meta-page-header">
   <h2>Plantillas</h2>
-  <p>Administra plantillas sincronizadas desde Meta Business</p>
+  <p>Crea plantillas y envíalas a Meta, o sincroniza las existentes</p>
 </div>
 
 <div style="margin-bottom: 1rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
@@ -43,13 +43,30 @@
   </table>
 </div>
 
+<div *ngIf="isLoading" style="color: #667781;">Cargando plantillas...</div>
+
 <div class="meta-modal-overlay" *ngIf="showModal" (click)="closeModal()">
-  <div class="meta-modal" (click)="$event.stopPropagation()">
+  <div class="meta-modal meta-modal-wide" (click)="$event.stopPropagation()">
     <h3>{{ editing ? 'Editar plantilla' : 'Nueva plantilla' }}</h3>
+
+    <div class="meta-form-group" *ngIf="!editing">
+      <label class="meta-checkbox-label">
+        <input type="checkbox" [(ngModel)]="submitToMeta">
+        Enviar a Meta para revisión
+      </label>
+      <p class="meta-field-hint" *ngIf="submitToMeta">
+        La plantilla se creará en WhatsApp Business y quedará en estado Pendiente hasta que Meta la apruebe.
+      </p>
+    </div>
+
     <div class="meta-form-group">
       <label>Nombre *</label>
-      <input [(ngModel)]="form.name">
+      <input [(ngModel)]="form.name" (blur)="onNameBlur()" placeholder="tututor_demo_certificacion">
+      <p class="meta-field-hint" *ngIf="submitToMeta && !editing">
+        Solo minúsculas, números y guiones bajos. Se normaliza al salir del campo.
+      </p>
     </div>
+
     <div class="meta-form-group">
       <label>Categoría *</label>
       <select [(ngModel)]="form.category">
@@ -58,27 +75,50 @@
         <option value="AUTHENTICATION">Autenticación</option>
       </select>
     </div>
+
     <div class="meta-form-group">
       <label>Idioma *</label>
-      <input [(ngModel)]="form.language" placeholder="es">
+      <input [(ngModel)]="form.language" placeholder="es_CO">
+      <p class="meta-field-hint">Usa el código de Meta, ej. es_CO para español Colombia.</p>
     </div>
-    <div class="meta-form-group">
+
+    <div class="meta-form-group" *ngIf="editing || !submitToMeta">
       <label>Estado</label>
       <select [(ngModel)]="form.status">
         <option value="approved">Aprobada</option>
         <option value="pending">Pendiente</option>
         <option value="rejected">Rechazada</option>
       </select>
+      <p class="meta-field-hint" *ngIf="!editing && !submitToMeta">Solo registro local; no se envía a Meta.</p>
     </div>
+
     <div class="meta-form-group">
       <label>Contenido *</label>
-      <textarea [(ngModel)]="form.content" placeholder="Hola {nombre}, tu curso {curso} está listo."></textarea>
+      <textarea
+        [(ngModel)]="form.content"
+        (ngModelChange)="onContentChange()"
+        [placeholder]="contentPlaceholder"></textarea>
+      <p class="meta-field-hint">{{ variablesHint }}</p>
     </div>
+
+    <div class="meta-form-group" *ngIf="submitToMeta && !editing && detectedVariables.length > 0">
+      <label>Ejemplos para Meta *</label>
+      <div class="meta-var-examples">
+        <div *ngFor="let varIndex of detectedVariables; let i = index" class="meta-var-row">
+          <span>{{ '{' }}{{ '{' }}{{ varIndex }}{{ '}' }}{{ '}' }}</span>
+          <input [(ngModel)]="variableExamples[i]" [placeholder]="'Ejemplo para variable ' + varIndex">
+        </div>
+      </div>
+      <p class="meta-field-hint">Meta exige ejemplos para cada variable al crear la plantilla.</p>
+    </div>
+
     <div class="meta-modal-actions">
-      <button class="meta-btn-secondary" (click)="closeModal()">Cancelar</button>
-      <button class="meta-btn-primary" (click)="save()" [disabled]="!form.name || !form.content">Guardar</button>
+      <button class="meta-btn-secondary" (click)="closeModal()" [disabled]="isSaving">Cancelar</button>
+      <button class="meta-btn-primary" (click)="save()" [disabled]="isSaving || !form.name || !form.content">
+        {{ isSaving ? 'Guardando...' : (editing ? 'Guardar' : (submitToMeta ? 'Crear y enviar a Meta' : 'Guardar solo local')) }}
+      </button>
     </div>
   </div>
 </div>
 
-<div class="meta-toast error" *ngIf="toast">{{ toast }}</div>
+<div class="meta-toast" [class.success]="toastType === 'success'" [class.error]="toastType === 'error'" *ngIf="toast">{{ toast }}</div>

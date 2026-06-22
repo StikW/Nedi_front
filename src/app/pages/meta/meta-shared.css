@@ -194,3 +194,52 @@
   background: #fee2e2;
   color: #dc2626;
 }
+
+.sync-msg {
+  font-size: 0.875rem;
+  color: #3b4a54;
+  margin-bottom: 1rem;
+}
+
+.meta-modal-wide {
+  max-width: 560px;
+}
+
+.meta-field-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.75rem;
+  color: #667781;
+  line-height: 1.4;
+}
+
+.meta-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #3b4a54;
+  cursor: pointer;
+}
+
+.meta-checkbox-label input {
+  width: auto;
+}
+
+.meta-var-examples {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.meta-var-row {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.meta-var-row span {
+  font-family: monospace;
+  font-size: 0.8125rem;
+  color: #667781;
+}

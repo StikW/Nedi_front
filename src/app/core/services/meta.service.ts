@@ -53,8 +53,26 @@ export class MetaService {
     return this.http.get<MetaTemplate[]>(`${this.apiUrl}/templates`, this.headers);
   }
 
-  createTemplate(data: Partial<MetaTemplate>): Observable<MetaTemplate> {
-    return this.http.post<MetaTemplate>(`${this.apiUrl}/templates`, data, this.headers);
+  createTemplate(data: {
+    name?: string;
+    category?: string;
+    language?: string;
+    status?: string;
+    content?: string;
+    submitToMeta?: boolean;
+    variableExamples?: string[];
+  }): Observable<MetaTemplate & {
+    metaSubmitted?: boolean;
+    metaTemplateId?: string;
+    metaStatus?: string;
+    message?: string;
+  }> {
+    return this.http.post<MetaTemplate & {
+      metaSubmitted?: boolean;
+      metaTemplateId?: string;
+      metaStatus?: string;
+      message?: string;
+    }>(`${this.apiUrl}/templates`, data, this.headers);
   }
 
   updateTemplate(id: string, data: Partial<MetaTemplate>): Observable<MetaTemplate> {
