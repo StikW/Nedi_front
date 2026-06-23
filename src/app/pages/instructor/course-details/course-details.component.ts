@@ -73,10 +73,6 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
   moduleCursorHistory: string[] = [];
   currentModulePageIndex: number = 0;
 
-  // Agent config modal state
-  showAgentConfigModal = false;
-  agentConfig: any = {};
-
   // Course stats
   courseStats: CourseStats | null = null;
   isLoadingStats = false;
@@ -1008,25 +1004,7 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
 
 
   openConfigureAgentModal() {
-    this.router.navigate(['/instructor/course-agent-config', this.course?.id], {
-      fragment: 'top'
-    }).then(() => {
-      window.scrollTo(0, 0);
-    });
+    this.router.navigate(['/instructor/agent-config']);
   }
 
-  closeAgentConfigModal() {
-    this.showAgentConfigModal = false;
-  }
-
-  saveAgentConfig(config: any) {
-    this.agentConfig = config;
-    this.showAgentConfigModal = false;
-    // TODO: Guardar configuración en backend o estado global
-    this.dialogService.alert({
-      title: 'Configuración guardada',
-      message: 'La configuración del agente se guardó correctamente.',
-      variant: 'success',
-    });
-  }
 } 

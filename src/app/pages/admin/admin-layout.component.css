@@ -1,0 +1,37 @@
+.admin-shell {
+  min-height: calc(100vh - 64px);
+  background: linear-gradient(135deg, #f0f4ff 0%, #f5f3ff 100%);
+}
+
+.admin-tabs {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 0;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-tabs a {
+  padding: 0.625rem 1.25rem;
+  border-radius: 10px 10px 0 0;
+  text-decoration: none;
+  font-weight: 600;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.admin-tabs a:hover {
+  color: #7c3aed;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.admin-tabs a.active {
+  color: #dc2626;
+  background: white;
+  border-color: #e2e8f0;
+  border-bottom-color: white;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+}

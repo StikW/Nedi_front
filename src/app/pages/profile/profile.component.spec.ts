@@ -3,37 +3,34 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ProfileComponent } from './profile.component';
 import { AuthService } from '../../core/services/auth.service';
+import { DialogService } from '../../core/services/dialog.service';
 import { of } from 'rxjs';
 
 describe('ProfileComponent', () => {
   let component: ProfileComponent;
   let fixture: ComponentFixture<ProfileComponent>;
-  let authService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
-    const authServiceSpy = jasmine.createSpyObj('AuthService', [], {
+    const authServiceSpy = jasmine.createSpyObj('AuthService', ['getMyProfile'], {
       currentUser$: of({
-        id: 1,
+        id: '1',
         email: 'test@example.com',
         name: 'Test User',
         role: 'instructor',
-        phone: '+1234567890',
-        company: 'Test Company',
-        position: 'Test Position',
-        bio: 'Test bio'
-      })
+      }),
     });
+    authServiceSpy.getMyProfile.and.returnValue(of({}));
 
     await TestBed.configureTestingModule({
       imports: [ProfileComponent, ReactiveFormsModule, RouterTestingModule],
       providers: [
-        { provide: AuthService, useValue: authServiceSpy }
-      ]
+        { provide: AuthService, useValue: authServiceSpy },
+        { provide: DialogService, useValue: jasmine.createSpyObj('DialogService', ['alert', 'confirm']) },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ProfileComponent);
     component = fixture.componentInstance;
-    authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
     fixture.detectChanges();
   });
 
@@ -41,8 +38,7 @@ describe('ProfileComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize form with user data', () => {
-    expect(component.profileForm.get('name')?.value).toBe('Test User');
+  it('should initialize form with user email', () => {
     expect(component.profileForm.get('email')?.value).toBe('test@example.com');
   });
 

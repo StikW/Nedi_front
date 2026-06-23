@@ -1,5 +1,3 @@
-<app-navbar></app-navbar>
-
 <div class="dashboard-container">
   <div class="dashboard-header">
     <div class="header-content">
@@ -75,9 +73,6 @@
             <div class="user-details">
               <span class="role-badge" [class]="getRoleColor(user.role)">
                 {{ getRoleLabel(user.role) }}
-              </span>
-              <span *ngIf="user.role === 'meta'" class="role-badge" [class]="user.isActive !== false ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'">
-                {{ user.isActive !== false ? 'Activo' : 'Inactivo' }}
               </span>
             </div>
           </div>

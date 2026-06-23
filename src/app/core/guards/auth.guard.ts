@@ -18,12 +18,6 @@ export const AuthGuard: CanActivateFn = () => {
         return false;
       }
 
-      // Usuarios Meta solo pueden acceder al panel Meta
-      if (user.role === 'meta') {
-        router.navigate(['/meta']);
-        return false;
-      }
-
       return true;
     })
   );

@@ -2,6 +2,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { map, take } from 'rxjs/operators';
 import { inject } from '@angular/core';
+import { getDefaultRouteForRole, isSupportedRole } from '../utils/role-routes';
 
 export const NoAuthGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
@@ -12,11 +13,15 @@ export const NoAuthGuard: CanActivateFn = () => {
     map(user => {
       if (!user) {
         return true;
-      } else {
-        // User is logged in, redirect to instructor dashboard
-        router.navigate(['/instructor']);
-        return false;
       }
+
+      if (!isSupportedRole(user.role)) {
+        authService.logout();
+        return true;
+      }
+
+      router.navigate([getDefaultRouteForRole(user.role)]);
+      return false;
     })
   );
 };

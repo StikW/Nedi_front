@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { User } from '../../models/user.model';
@@ -10,7 +10,7 @@ import { User } from '../../models/user.model';
   templateUrl: './user-modal.component.html',
   styleUrls: ['./user-modal.component.css']
 })
-export class UserModalComponent implements OnInit {
+export class UserModalComponent implements OnInit, OnChanges {
   @Input() isOpen: boolean = false;
   @Input() isLoading: boolean = false;
   @Input() mode: 'create' | 'edit' = 'create';
@@ -24,41 +24,31 @@ export class UserModalComponent implements OnInit {
     email: '',
     role: 'instructor',
     password: '',
-    isActive: true,
-    clientIdApp: '',
-    clientSecretApp: '',
-    businessAccountId: '',
-    accessToken: '',
-    apiKey: ''
   };
 
-  roles = [
-    { value: 'instructor', label: 'Instructor' },
-    { value: 'meta', label: 'Meta' },
-  ];
-
   ngOnInit() {
-    if (this.mode === 'edit' && this.user) {
-      this.formData = { ...this.user, isActive: this.user.isActive !== false };
-    } else {
-      this.resetForm();
-    }
+    this.syncFormFromInputs();
   }
 
   ngOnChanges() {
+    this.syncFormFromInputs();
+  }
+
+  get showInstructorInfo(): boolean {
+    return this.mode === 'edit' && this.user?.role === 'instructor';
+  }
+
+  private syncFormFromInputs() {
     if (this.mode === 'edit' && this.user) {
-      this.formData = { ...this.user, isActive: this.user.isActive !== false };
+      this.formData = {
+        name: this.user.name,
+        email: this.user.email,
+        role: this.user.role,
+        password: '',
+      };
     } else {
       this.resetForm();
     }
-  }
-
-  get isInstructor(): boolean {
-    return this.formData.role === 'instructor';
-  }
-
-  get isMeta(): boolean {
-    return this.formData.role === 'meta';
   }
 
   private resetForm() {
@@ -67,34 +57,25 @@ export class UserModalComponent implements OnInit {
       email: '',
       role: 'instructor',
       password: '',
-      isActive: true,
-      clientIdApp: '',
-      clientSecretApp: '',
-      businessAccountId: '',
-      accessToken: '',
-      apiKey: ''
     };
   }
 
   onSubmit() {
-    if (this.isFormValid()) {
-      const dataToSubmit = { ...this.formData };
+    if (!this.isFormValid()) return;
 
-      if (this.mode === 'edit' && !dataToSubmit.password?.trim()) {
-        delete dataToSubmit.password;
-      }
+    const payload: Partial<User> = {
+      name: this.formData.name?.trim(),
+      email: this.formData.email?.trim(),
+    };
 
-      // Meta users don't need instructor integration fields
-      if (this.isMeta) {
-        delete dataToSubmit.clientIdApp;
-        delete dataToSubmit.clientSecretApp;
-        delete dataToSubmit.businessAccountId;
-        delete dataToSubmit.accessToken;
-        delete dataToSubmit.apiKey;
-      }
-
-      this.submitUser.emit(dataToSubmit);
+    if (this.mode === 'create') {
+      payload.role = 'instructor';
+      payload.password = this.formData.password?.trim();
+    } else if (this.formData.password?.trim()) {
+      payload.password = this.formData.password.trim();
     }
+
+    this.submitUser.emit(payload);
   }
 
   onClose() {
@@ -103,35 +84,48 @@ export class UserModalComponent implements OnInit {
   }
 
   isFormValid(): boolean {
-    const baseFields = [
-      this.formData.name?.trim(),
-      this.formData.email?.trim(),
-    ];
-
+    const fields = [this.formData.name?.trim(), this.formData.email?.trim()];
     if (this.mode === 'create') {
-      baseFields.push(this.formData.password?.trim());
+      fields.push(this.formData.password?.trim());
     }
+    return fields.every((field) => !!field);
+  }
 
-    if (this.isInstructor) {
-      baseFields.push(
-        this.formData.clientIdApp?.trim(),
-        this.formData.clientSecretApp?.trim(),
-        this.formData.businessAccountId?.trim(),
-        this.formData.accessToken?.trim(),
-        this.formData.apiKey?.trim(),
-      );
+  roleLabel(role: User['role'] | string): string {
+    const labels: Record<string, string> = {
+      admin: 'Administrador',
+      instructor: 'Instructor',
+      student: 'Estudiante',
+    };
+    return labels[role] || role;
+  }
+
+  evolutionStatusLabel(status?: User['evolutionStatus']): string {
+    switch (status) {
+      case 'connected':
+        return 'Conectado';
+      case 'connecting':
+        return 'Conectando…';
+      default:
+        return 'Sin conectar';
     }
+  }
 
-    return baseFields.every(field => !!field);
+  formatPhone(phone?: string): string {
+    if (!phone?.trim()) {
+      return 'Sin vincular';
+    }
+    const digits = phone.replace(/\D/g, '');
+    return digits ? `+${digits}` : phone;
   }
 
   get modalTitle(): string {
-    if (this.mode === 'edit') return 'Editar Usuario';
-    return this.isMeta ? 'Agregar Usuario Meta' : 'Agregar Instructor';
+    if (this.mode === 'edit') return 'Editar usuario';
+    return 'Agregar instructor';
   }
 
   get submitButtonText(): string {
-    if (this.mode === 'edit') return 'Actualizar Usuario';
-    return this.isMeta ? 'Crear Usuario Meta' : 'Crear Instructor';
+    if (this.mode === 'edit') return 'Actualizar usuario';
+    return 'Crear instructor';
   }
 }

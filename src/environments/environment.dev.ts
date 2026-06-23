@@ -4,5 +4,4 @@ export const environment = {
     apiUrl: '/api',
     apiVersion: 'v1',
     publicAppUrl: 'https://tututor.co',
-    metaWebhookUrl: 'https://tututor.co/api/meta/webhook',
   };

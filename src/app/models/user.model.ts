@@ -9,7 +9,7 @@ export interface User {
   /** User's full name */
   name: string;
   /** User's role in the system */
-  role: 'student' | 'instructor' | 'admin' | 'meta';
+  role: 'student' | 'instructor' | 'admin';
   /** Whether the account is active */
   isActive?: boolean;
   /**

@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { InstructorCourseListComponent } from '../../components/instructor-course-list/instructor-course-list.component';
 import { InstructorCourse } from '../../models/course.model';
@@ -57,7 +57,6 @@ export class InstructorDashboardComponent implements OnInit, OnDestroy {
   constructor(
     private coursesService: CoursesService,
     private authService: AuthService,
-    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -196,11 +195,6 @@ export class InstructorDashboardComponent implements OnInit, OnDestroy {
       this.sortOrder = newOrder;
       this.loadCourses(); // Recargar con nuevo orden
     }
-  }
-
-  openConfigureAgentModal(): void {
-    // Navegamos a la configuración global del agente del instructor
-    this.router.navigate(['/instructor/agent-config']);
   }
 
   deleteCourse(courseId: string): void {

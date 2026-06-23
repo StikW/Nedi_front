@@ -11,23 +11,33 @@
     </div>
 
     <form (ngSubmit)="onSubmit()" class="modal-form">
+      <p class="form-intro" *ngIf="mode === 'create'">
+        Crea la cuenta del instructor. El WhatsApp de Nedi y el teléfono de tutor se configuran
+        después desde el perfil del instructor.
+      </p>
+
+      <div class="form-group" *ngIf="mode === 'edit' && user?.role">
+        <label>Rol</label>
+        <div class="readonly-value">{{ roleLabel(user!.role) }}</div>
+      </div>
+
       <div class="form-group">
-        <label for="name">Nombre Completo *</label>
-        <input 
-          type="text" 
-          id="name" 
-          [(ngModel)]="formData.name" 
+        <label for="name">Nombre completo *</label>
+        <input
+          type="text"
+          id="name"
+          [(ngModel)]="formData.name"
           name="name"
           required
           placeholder="Ingresa el nombre completo">
       </div>
 
       <div class="form-group">
-        <label for="email">Correo Electrónico *</label>
-        <input 
-          type="email" 
-          id="email" 
-          [(ngModel)]="formData.email" 
+        <label for="email">Correo electrónico *</label>
+        <input
+          type="email"
+          id="email"
+          [(ngModel)]="formData.email"
           name="email"
           required
           placeholder="usuario@ejemplo.com">
@@ -35,98 +45,39 @@
 
       <div class="form-group">
         <label for="password">
-          Contraseña 
+          Contraseña
           <span *ngIf="mode === 'create'">*</span>
           <span *ngIf="mode === 'edit'" class="optional-text">(opcional)</span>
         </label>
-        <input 
-          type="password" 
-          id="password" 
-          [(ngModel)]="formData.password" 
+        <input
+          type="password"
+          id="password"
+          [(ngModel)]="formData.password"
           name="password"
           [required]="mode === 'create'"
           [placeholder]="mode === 'create' ? 'Ingresa una contraseña segura' : 'Deja vacío para mantener la contraseña actual'">
       </div>
 
-      <div class="form-group" *ngIf="mode === 'create'">
-        <label for="role">Rol *</label>
-        <select 
-          id="role" 
-          [(ngModel)]="formData.role" 
-          name="role"
-          required>
-          <option *ngFor="let role of roles" [value]="role.value">
-            {{ role.label }}
-          </option>
-        </select>
-      </div>
+      <div class="form-section" *ngIf="showInstructorInfo">
+        <h3>WhatsApp del agente Nedi</h3>
+        <p class="field-hint">
+          Estos datos no se editan aquí. El instructor los vincula desde su perfil al conectar WhatsApp.
+        </p>
 
-      <!-- Estado activo/inactivo para usuarios Meta -->
-      <div class="form-group" *ngIf="isMeta || (mode === 'edit' && user?.role === 'meta')">
-        <label for="isActive">Estado *</label>
-        <select id="isActive" [(ngModel)]="formData.isActive" name="isActive">
-          <option [ngValue]="true">Activo</option>
-          <option [ngValue]="false">Inactivo</option>
-        </select>
-      </div>
-
-      <!-- Campos específicos para instructores -->
-      <div class="form-section" *ngIf="isInstructor">
-        <h3>Configuración de Integración</h3>
-        
         <div class="form-group">
-          <label for="clientIdApp">Client ID App *</label>
-          <input 
-            type="text" 
-            id="clientIdApp" 
-            [(ngModel)]="formData.clientIdApp" 
-            name="clientIdApp"
-            required
-            placeholder="Ingresa el Client ID de la aplicación">
+          <label>Estado de conexión</label>
+          <div class="readonly-value">
+            <span class="status-badge" [class]="'status-' + (user?.evolutionStatus || 'disconnected')">
+              {{ evolutionStatusLabel(user?.evolutionStatus) }}
+            </span>
+          </div>
         </div>
 
         <div class="form-group">
-          <label for="clientSecretApp">Client Secret App *</label>
-          <input 
-            type="password" 
-            id="clientSecretApp" 
-            [(ngModel)]="formData.clientSecretApp" 
-            name="clientSecretApp"
-            required
-            placeholder="Ingresa el Client Secret de la aplicación">
-        </div>
-
-        <div class="form-group">
-          <label for="businessAccountId">Business Account ID *</label>
-          <input 
-            type="text" 
-            id="businessAccountId" 
-            [(ngModel)]="formData.businessAccountId" 
-            name="businessAccountId"
-            required
-            placeholder="Ingresa el Business Account ID">
-        </div>
-
-        <div class="form-group">
-          <label for="accessToken">Access Token *</label>
-          <input 
-            type="password" 
-            id="accessToken" 
-            [(ngModel)]="formData.accessToken" 
-            name="accessToken"
-            required
-            placeholder="Ingresa el Access Token">
-        </div>
-
-        <div class="form-group">
-          <label for="apiKey">API Key *</label>
-          <input 
-            type="password" 
-            id="apiKey" 
-            [(ngModel)]="formData.apiKey" 
-            name="apiKey"
-            required
-            placeholder="Ingresa la API Key">
+          <label>Teléfono tutor (plantilla de bienvenida)</label>
+          <div class="readonly-value">
+            {{ formatPhone(user?.evolutionNumber || user?.phoneNumber) }}
+          </div>
         </div>
       </div>
 
@@ -134,9 +85,9 @@
         <button type="button" class="btn-secondary" (click)="onClose()">
           Cancelar
         </button>
-        <button 
-          type="submit" 
-          class="btn-primary" 
+        <button
+          type="submit"
+          class="btn-primary"
           [disabled]="!isFormValid() || isLoading">
           <svg *ngIf="isLoading" xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 12a9 9 0 11-6.219-8.56"></path>

@@ -1,0 +1,14 @@
+<app-navbar></app-navbar>
+
+<div class="admin-shell">
+  <nav class="admin-tabs">
+    <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      Usuarios
+    </a>
+    <a routerLink="/admin/notifications" routerLinkActive="active">
+      Notificaciones WhatsApp
+    </a>
+  </nav>
+
+  <router-outlet></router-outlet>
+</div>

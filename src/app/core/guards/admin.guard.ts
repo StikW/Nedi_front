@@ -2,7 +2,7 @@ import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { map, take } from 'rxjs/operators';
 import { inject } from '@angular/core';
-import { getDefaultRouteForRole } from '../utils/role-routes';
+import { getDefaultRouteForRole, isSupportedRole } from '../utils/role-routes';
 
 export const AdminGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
@@ -13,16 +13,21 @@ export const AdminGuard: CanActivateFn = () => {
     map(user => {
       if (user && user.role === 'admin') {
         return true;
-      } else {
-        if (user) {
-          router.navigate([getDefaultRouteForRole(user.role)]);
-        } else {
-          router.navigate(['/login'], {
-            queryParams: { returnUrl: router.url }
-          });
-        }
+      }
+
+      if (user && !isSupportedRole(user.role)) {
+        authService.logout();
         return false;
       }
-    })
+
+      if (user) {
+        router.navigate([getDefaultRouteForRole(user.role)]);
+      } else {
+        router.navigate(['/login'], {
+          queryParams: { returnUrl: router.url },
+        });
+      }
+      return false;
+    }),
   );
 };

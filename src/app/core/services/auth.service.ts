@@ -5,6 +5,7 @@ import { tap, catchError } from 'rxjs/operators';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { User } from '../../models/user.model';
 import { environment } from '../../../environments/environment';
+import { isSupportedRole } from '../utils/role-routes';
 
 @Injectable({
   providedIn: 'root'
@@ -23,8 +24,14 @@ export class AuthService {
     const storedUser = localStorage.getItem(this.STORAGE_KEY);
     if (storedUser) {
       try {
-        const user = JSON.parse(storedUser);
-        this.currentUserSubject.next(user);
+        const user = JSON.parse(storedUser) as User;
+        if (!isSupportedRole(user?.role)) {
+          // Rol legacy (p.ej. meta) ya no tiene panel; evita bucles de redirección.
+          localStorage.removeItem(this.STORAGE_KEY);
+          this.currentUserSubject.next(null);
+        } else {
+          this.currentUserSubject.next(user);
+        }
       } catch (error) {
         console.error('Error parsing stored user:', error);
         localStorage.removeItem(this.STORAGE_KEY);

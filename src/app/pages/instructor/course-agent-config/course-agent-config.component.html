@@ -3,127 +3,237 @@
 <div class="config-container">
   <div class="config-header">
     <div class="header-content">
-      <h1>Configurar Agente de IA Global</h1>
-      <p class="subtitle">Personaliza cómo tu agente de IA interactúa con los estudiantes en todos tus cursos.</p>
-    </div>
-  </div>
-
-  <div class="config-content">
-    <!-- Communication Style Section -->
-    <div class="config-section">
-      <h2>Estilo de Comunicación</h2>
-      <p class="section-description">Elige cómo tu agente de IA se comunica con los estudiantes.</p>
-      
-      <div class="options-grid">
-        <div class="option-card" *ngFor="let style of communicationStyles" 
-             [class.selected]="config.communicationStyle === style.value"
-             (click)="config.communicationStyle = $any(style.value)">
-          <h3>{{ style.label }}</h3>
-          <p>{{ style.description }}</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Response Depth Section -->
-    <div class="config-section">
-      <h2>Profundidad de Respuesta</h2>
-      <p class="section-description">Define qué tan detalladas deben ser las respuestas del agente de IA.</p>
-      
-      <div class="options-grid">
-        <div class="option-card" *ngFor="let depth of responseDepths"
-             [class.selected]="config.responseDepth === depth.value"
-             (click)="config.responseDepth = $any(depth.value)">
-          <h3>{{ depth.label }}</h3>
-          <p>{{ depth.description }}</p>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- Restrictions Section -->
-    <div class="config-section">
-      <h2>Restricciones</h2>
-      <p class="section-description">Define temas y políticas que el agente de IA no debe discutir.</p>
-      
-      <div class="restrictions-grid">
-        <!-- Topics -->
-        <div class="restriction-group">
-          <h3>Temas a Evitar</h3>
-          <div class="input-group">
-            <input type="text" [(ngModel)]="newRestrictionTopic" placeholder="Agregar tema a evitar">
-            <button class="btn-secondary" (click)="addRestrictionTopic()">Agregar</button>
-          </div>
-          <div class="restriction-list" *ngIf="config.restrictions.topics.length > 0">
-            <div class="restriction-item" *ngFor="let topic of config.restrictions.topics; let i = index">
-              <span>{{ topic }}</span>
-              <button class="btn-icon" (click)="removeRestrictionTopic(i)">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Policies -->
-        <div class="restriction-group">
-          <h3>Restricciones de Política</h3>
-          <div class="input-group">
-            <input type="text" [(ngModel)]="newRestrictionPolicy" placeholder="Agregar restricción de política">
-            <button class="btn-secondary" (click)="addRestrictionPolicy()">Agregar</button>
-          </div>
-          <div class="restriction-list" *ngIf="config.restrictions.policies.length > 0">
-            <div class="restriction-item" *ngFor="let policy of config.restrictions.policies; let i = index">
-              <span>{{ policy }}</span>
-              <button class="btn-icon" (click)="removeRestrictionPolicy(i)">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Out of Scope Responses Section -->
-    <div class="config-section">
-      <h2>Respuestas Fuera de Alcance</h2>
-      <p class="section-description">Define cómo el agente de IA debe responder a preguntas fuera del alcance del curso.</p>
-      
-      <div class="options-grid">
-        <div class="option-card" *ngFor="let response of outOfScopeResponses"
-             [class.selected]="config.outOfScopeResponse === response.value"
-             (click)="config.outOfScopeResponse = $any(response.value)">
-          <h3>{{ response.label }}</h3>
-        </div>
-      </div>
-
-      <div class="custom-message" *ngIf="config.outOfScopeResponse === 'custom'">
-        <label for="customMessage">Mensaje de Respuesta Personalizado</label>
-        <textarea id="customMessage" [(ngModel)]="config.customOutOfScopeMessage" 
-                  placeholder="Ingresa el mensaje que la IA debe usar cuando una pregunta esté fuera de alcance"></textarea>
-      </div>
-    </div>
-  </div>
-
-  <!-- Botones al final de la página -->
-  <div class="form-actions">
-          <button type="button" class="btn-secondary" [routerLink]="['/instructor']">
-        <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
+      <div class="header-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.883 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
         </svg>
-        Volver al Panel
-      </button>
-    <button type="button" class="btn-primary" (click)="saveConfig()">
+        WhatsApp · Agente Nedi
+      </div>
+      <h1>Configurar agente Nedi</h1>
+      <p class="subtitle">
+        Vincula el WhatsApp desde el que Nedi atiende a tus estudiantes. Ese número también se usa
+        como teléfono de tutor en la plantilla de bienvenida.
+      </p>
+    </div>
+    <a routerLink="/instructor" class="btn-secondary back-btn">
       <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-        <polyline points="17 21 17 13 7 13 7 21"/>
-        <polyline points="7 3 7 8 15 8"/>
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
       </svg>
-      Guardar Configuración
-    </button>
+      Volver al panel
+    </a>
   </div>
-</div> 
+
+  <div class="config-layout">
+    <div class="config-card status-card" [class]="'status-card--' + evolutionStatus">
+      <div class="status-card__top">
+        <div class="status-icon" [class]="'status-icon--' + evolutionStatus">
+          <svg *ngIf="evolutionStatus === 'connected'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <svg *ngIf="evolutionStatus === 'connecting'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+            <rect x="14" y="14" width="3" height="3"/>
+            <path d="M21 14h-3v7"/>
+          </svg>
+          <svg *ngIf="evolutionStatus === 'disconnected'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/>
+            <line x1="23" y1="1" x2="1" y2="23"/>
+          </svg>
+        </div>
+        <div class="status-card__info">
+          <span class="status-label">Estado de conexión</span>
+          <div class="status-badge-row">
+            <span class="status-dot" [class]="'status-dot--' + evolutionStatus"></span>
+            <span class="status-badge" [class]="'status-' + evolutionStatus">
+              {{ evolutionStatusLabel }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <p class="status-message" *ngIf="evolutionStatus === 'connected'">
+        Nedi está activo y puede responder a tus estudiantes por WhatsApp.
+      </p>
+      <p class="status-message" *ngIf="evolutionStatus === 'connecting'">
+        Escanea el código QR con tu teléfono para completar la vinculación.
+      </p>
+      <p class="status-message" *ngIf="evolutionStatus === 'disconnected'">
+        Conecta tu WhatsApp para que Nedi pueda atender a tus estudiantes automáticamente.
+      </p>
+    </div>
+
+    <div class="config-card details-card">
+      <h2 class="card-title">Detalles de la conexión</h2>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-item__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+          </div>
+          <div class="info-item__content">
+            <span class="info-label">Teléfono vinculado</span>
+            <span class="info-value" [class.info-value--empty]="!tutorPhoneNumber">
+              {{ formatEvolutionPhone(tutorPhoneNumber) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="info-item" *ngIf="evolutionInstance">
+          <div class="info-item__icon info-item__icon--muted">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+              <line x1="6" y1="6" x2="6.01" y2="6"/>
+              <line x1="6" y1="18" x2="6.01" y2="18"/>
+            </svg>
+          </div>
+          <div class="info-item__content">
+            <span class="info-label">Instancia Evolution</span>
+            <span class="info-value info-value--mono">{{ evolutionInstance }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="evolution-error" *ngIf="evolutionError">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {{ evolutionError }}
+      </div>
+
+      <div class="evolution-actions">
+        <button
+          type="button"
+          class="btn-whatsapp"
+          *ngIf="evolutionStatus !== 'connected'"
+          (click)="connectWhatsApp()"
+          [disabled]="isEvolutionLoading">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.883 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+          <span *ngIf="!isEvolutionLoading">{{ evolutionStatus === 'connecting' ? 'Mostrar QR' : 'Conectar WhatsApp' }}</span>
+          <span *ngIf="isEvolutionLoading">Preparando...</span>
+        </button>
+
+        <button
+          type="button"
+          class="btn-secondary"
+          *ngIf="evolutionStatus === 'connecting'"
+          (click)="refreshEvolutionStatus()"
+          [disabled]="isEvolutionLoading">
+          Verificar conexión
+        </button>
+
+        <button
+          type="button"
+          class="btn-secondary btn-danger-outline"
+          *ngIf="evolutionStatus === 'connected' || evolutionStatus === 'connecting'"
+          (click)="disconnectWhatsApp()"
+          [disabled]="isEvolutionLoading">
+          Desconectar
+        </button>
+      </div>
+    </div>
+
+    <div class="config-card help-card">
+      <h2 class="card-title">¿Cómo funciona?</h2>
+      <ol class="help-steps">
+        <li>
+          <span class="step-number">1</span>
+          <div>
+            <strong>Conecta tu WhatsApp</strong>
+            <p>Escanea el código QR desde tu teléfono, como cuando vinculas WhatsApp Web.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-number">2</span>
+          <div>
+            <strong>Nedi responde por ti</strong>
+            <p>El agente atiende consultas de tus estudiantes usando el contenido de tus cursos.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-number">3</span>
+          <div>
+            <strong>Tu número en la bienvenida</strong>
+            <p>El teléfono vinculado aparece como contacto del tutor en la plantilla de bienvenida.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div
+  class="qr-modal-overlay"
+  *ngIf="showQrModal"
+  (click)="onQrModalBackdropClick($event)">
+  <div class="qr-modal" role="dialog" aria-labelledby="qr-modal-title" aria-modal="true">
+    <div class="qr-modal-header">
+      <div class="qr-modal-brand">
+        <div class="qr-modal-brand-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.883 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 id="qr-modal-title">Vincular WhatsApp</h2>
+          <p class="qr-modal-subtitle">Escanea el código con tu teléfono</p>
+        </div>
+      </div>
+      <button type="button" class="qr-modal-close" (click)="closeQrModal()" aria-label="Cerrar">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="qr-modal-body">
+      <ol class="qr-steps">
+        <li>Abre WhatsApp en tu teléfono</li>
+        <li>Menú → <strong>Dispositivos vinculados</strong></li>
+        <li><strong>Vincular dispositivo</strong> y escanea el QR</li>
+      </ol>
+
+      <div class="qr-frame" [class.qr-frame--loading]="isEvolutionLoading && !qrDataUrl">
+        <div class="qr-spinner" *ngIf="isEvolutionLoading && !qrDataUrl"></div>
+        <img
+          *ngIf="qrDataUrl"
+          [src]="qrDataUrl"
+          alt="Código QR para vincular WhatsApp"
+          class="qr-image"
+          width="200"
+          height="200" />
+        <p class="qr-refresh-hint" *ngIf="isQrRefreshing">Actualizando código...</p>
+      </div>
+
+      <p class="pairing-code" *ngIf="pairingCode">
+        Código alternativo: <strong>{{ pairingCode }}</strong>
+      </p>
+
+      <p class="qr-waiting" *ngIf="evolutionStatus === 'connecting' && qrDataUrl && !isQrRefreshing">
+        <span class="qr-pulse"></span>
+        Esperando escaneo...
+      </p>
+
+      <div class="evolution-error qr-modal-error" *ngIf="evolutionError">{{ evolutionError }}</div>
+    </div>
+
+    <div class="qr-modal-footer">
+      <button type="button" class="btn-secondary" (click)="refreshQrCode()" [disabled]="isEvolutionLoading || isQrRefreshing">
+        Renovar QR
+      </button>
+      <button type="button" class="btn-secondary" (click)="refreshEvolutionStatus()" [disabled]="isEvolutionLoading">
+        Ya escaneé
+      </button>
+    </div>
+  </div>
+</div>

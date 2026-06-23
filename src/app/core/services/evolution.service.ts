@@ -24,6 +24,12 @@ export interface EvolutionLogoutResult {
   success: boolean;
 }
 
+export interface EvolutionHealthResult {
+  reachable: boolean;
+  serverUrl: string;
+  message?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -47,6 +53,12 @@ export class EvolutionService {
       .pipe(catchError((err) => throwError(() => this.mapError(err, 'consultar el estado'))));
   }
 
+  health(): Observable<EvolutionHealthResult> {
+    return this.http
+      .get<EvolutionHealthResult>(`${this.baseUrl}/health`, { headers: this.authService.getAuthHeaders() })
+      .pipe(catchError(() => throwError(() => new Error('No se pudo verificar Evolution'))));
+  }
+
   logout(): Observable<EvolutionLogoutResult> {
     return this.http
       .post<EvolutionLogoutResult>(`${this.baseUrl}/logout`, {}, { headers: this.authService.getAuthHeaders() })
@@ -67,7 +79,17 @@ export class EvolutionService {
     if (error.status === 401) {
       return new Error('Sesión expirada. Vuelve a iniciar sesión.');
     }
-    const msg = error.error?.message || error.message;
+    if (error.status === 502 || error.status === 503 || error.status === 504) {
+      return new Error(
+        error.error?.message ||
+          'No se pudo contactar al servidor de WhatsApp. Verifica tu conexión o intenta más tarde.',
+      );
+    }
+    const body = error.error;
+    const msg =
+      typeof body === 'string'
+        ? body
+        : body?.message || error.message;
     return new Error(msg ? `No se pudo ${action}: ${msg}` : `No se pudo ${action}. Intenta de nuevo.`);
   }
 }

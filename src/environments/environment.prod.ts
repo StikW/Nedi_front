@@ -5,5 +5,4 @@ export const environment = {
     apiVersion: 'v1',
     /** Fallback SSR/build; en el navegador se usa window.location.origin */
     publicAppUrl: 'https://tututor.co',
-    metaWebhookUrl: 'https://tututor.co/api/meta/webhook',
   };

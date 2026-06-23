@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { UserModalComponent } from '../../components/user-modal/user-modal.component';
 import { User } from '../../models/user.model';
 import { PaginatedResponse } from '../../models/paginated-response.model';
@@ -12,7 +11,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent, UserModalComponent],
+  imports: [CommonModule, FormsModule, UserModalComponent],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css']
 })
@@ -161,7 +160,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       'admin': 'Administrador',
       'instructor': 'Instructor',
       'student': 'Estudiante',
-      'meta': 'Meta',
     };
     return roleLabels[role] || role;
   }
@@ -171,7 +169,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       'admin': 'bg-red-100 text-red-800',
       'instructor': 'bg-blue-100 text-blue-800',
       'student': 'bg-green-100 text-green-800',
-      'meta': 'bg-emerald-100 text-emerald-800',
     };
     return roleColors[role] || 'bg-gray-100 text-gray-800';
   }

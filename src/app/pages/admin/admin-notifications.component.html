@@ -1,0 +1,243 @@
+<div class="notifications-page">
+  <div class="page-header">
+    <div>
+      <h1>Notificaciones WhatsApp</h1>
+      <p class="subtitle">
+        Toda la configuración de recordatorios WhatsApp se gestiona aquí (credenciales, plantillas, horarios y activación).
+      </p>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-box">
+    <div class="spinner"></div>
+    <span>Cargando configuración...</span>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    <!-- Toggle global -->
+    <section class="config-card highlight-card">
+      <div class="toggle-row">
+        <div>
+          <h2>Notificaciones automáticas</h2>
+          <p>Activa o desactiva todos los envíos (bienvenida y recordatorios).</p>
+        </div>
+        <button
+          type="button"
+          class="toggle-btn"
+          [class.on]="config.notificationsEnabled"
+          (click)="toggleNotifications()">
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          <span class="toggle-label">{{ config.notificationsEnabled ? 'Activadas' : 'Desactivadas' }}</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Paso 1: Credenciales -->
+    <section class="config-card step-card">
+      <div class="step-badge">1</div>
+      <h2>Credenciales Meta</h2>
+      <p class="section-desc">Conecta tu cuenta de WhatsApp Business Cloud API.</p>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Versión Graph API</label>
+          <input [(ngModel)]="config.whatsappApiVersion" placeholder="v21.0">
+        </div>
+        <div class="form-group">
+          <label>Phone Number ID</label>
+          <input [(ngModel)]="config.whatsappPhoneNumberId" placeholder="123456789012345">
+        </div>
+        <div class="form-group">
+          <label>Business Account ID (WABA)</label>
+          <input [(ngModel)]="config.whatsappBusinessAccountId" placeholder="Requerido para listar plantillas">
+          <small>Meta Business Suite → WhatsApp → Configuración de la API → ID de la cuenta de WhatsApp Business.</small>
+        </div>
+        <div class="form-group full-width">
+          <label>Access Token</label>
+          <input
+            type="password"
+            [(ngModel)]="accessTokenInput"
+            [placeholder]="config.accessTokenConfigured ? '•••••••• (vacío = mantener actual)' : 'EAAxxxx...'">
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <button class="btn-primary" (click)="saveCredentials()" [disabled]="isSavingCredentials || isTesting">
+          {{ isSavingCredentials ? 'Guardando...' : (isTesting ? 'Conectando...' : 'Guardar y conectar') }}
+        </button>
+      </div>
+
+      <p *ngIf="testResult?.connected" class="msg-ok">
+        ✓ Conectado{{ testResult?.phoneNumber ? ' — ' + testResult?.phoneNumber : '' }}
+        <span *ngIf="testResult?.businessAccountId"> · WABA {{ testResult?.businessAccountId }}</span>
+      </p>
+      <p *ngIf="testResult?.hint" class="msg-hint">{{ testResult?.hint }}</p>
+      <p *ngIf="credentialsError" class="msg-error">✗ {{ credentialsError }}</p>
+    </section>
+
+    <!-- Paso 2: Plantillas -->
+    <section class="config-card step-card" [class.locked]="!templatesUnlocked">
+      <div class="step-badge">2</div>
+      <h2>Plantillas y programación</h2>
+      <p class="section-desc" *ngIf="!templatesUnlocked">
+        Guarda y conecta las credenciales para ver tus plantillas aprobadas en Meta.
+      </p>
+      <p class="section-desc" *ngIf="templatesUnlocked">
+        Elige qué plantilla usar para cada tipo de mensaje y configura la recurrencia.
+      </p>
+
+      <div *ngIf="!templatesUnlocked" class="locked-overlay">
+        <span>Completa el paso 1 para continuar</span>
+      </div>
+
+      <ng-container *ngIf="templatesUnlocked">
+        <div class="templates-toolbar">
+          <span *ngIf="isLoadingTemplates">Cargando plantillas de Meta...</span>
+          <span *ngIf="!isLoadingTemplates">{{ metaTemplates.length }} plantilla(s) aprobada(s)</span>
+          <button class="btn-secondary btn-sm" (click)="loadMetaTemplates()" [disabled]="isLoadingTemplates">
+            Actualizar lista
+          </button>
+        </div>
+        <p *ngIf="templatesError" class="msg-error">{{ templatesError }}</p>
+
+        <div class="timezone-row">
+          <label>Zona horaria</label>
+          <select [(ngModel)]="config.reminderCronTimezone">
+            <option *ngFor="let tz of timezoneOptions" [value]="tz">{{ tz }}</option>
+          </select>
+        </div>
+
+        <!-- Bienvenida -->
+        <article class="template-card">
+          <header>
+            <div>
+              <h3>{{ templateRoles.welcome.title }}</h3>
+              <p>{{ templateRoles.welcome.description }}</p>
+            </div>
+            <span class="badge badge-welcome">Al crear estudiante</span>
+          </header>
+
+          <div class="template-body">
+            <div class="form-group">
+              <label>Plantilla en Meta</label>
+              <select [ngModel]="welcomeSelection" (ngModelChange)="onWelcomeTemplateChange($event)">
+                <option value="">— Seleccionar plantilla —</option>
+                <option *ngFor="let t of metaTemplates" [value]="templateKey(t.name, t.language)">
+                  {{ templateLabel(t) }}
+                </option>
+              </select>
+              <small *ngIf="findMetaTemplate(config.welcomeTemplateName, config.welcomeTemplateLanguage) as sel">
+                {{ sel.bodyPreview }}
+              </small>
+            </div>
+
+            <div class="placeholders-box">
+              <span class="ph-label">Placeholders configurados:</span>
+              <span *ngFor="let ph of templateRoles.welcome.placeholders; let last = last" class="ph-chip">
+                {{ ph }}<span *ngIf="!last"> · </span>
+              </span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Recordatorio diario -->
+        <article class="template-card">
+          <header>
+            <div>
+              <h3>{{ templateRoles.daily.title }}</h3>
+              <p>{{ templateRoles.daily.description }}</p>
+            </div>
+            <span class="badge badge-daily">Recurrente</span>
+          </header>
+
+          <div class="template-body">
+            <div class="form-group">
+              <label>Plantilla en Meta</label>
+              <select [ngModel]="dailySelection" (ngModelChange)="onDailyTemplateChange($event)">
+                <option value="">— Seleccionar plantilla —</option>
+                <option *ngFor="let t of metaTemplates" [value]="templateKey(t.name, t.language)">
+                  {{ templateLabel(t) }}
+                </option>
+              </select>
+            </div>
+
+            <div class="placeholders-box">
+              <span class="ph-label">Placeholder:</span>
+              <span class="ph-chip">{{ templateRoles.daily.placeholders[0] }}</span>
+            </div>
+
+            <div class="schedule-block">
+              <label>Días de envío</label>
+              <div class="day-picker">
+                <button
+                  type="button"
+                  *ngFor="let d of weekdays"
+                  class="day-btn"
+                  [class.selected]="isDailyDaySelected(d.value)"
+                  (click)="toggleDailyDay(d.value)">
+                  {{ d.label }}
+                </button>
+              </div>
+              <div class="time-row">
+                <label>Hora</label>
+                <input
+                  type="time"
+                  [ngModel]="formatTime(config.dailySendHour, config.dailySendMinute)"
+                  (ngModelChange)="onDailyTimeChange($event)">
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Reflexión semanal -->
+        <article class="template-card">
+          <header>
+            <div>
+              <h3>{{ templateRoles.weekly.title }}</h3>
+              <p>{{ templateRoles.weekly.description }}</p>
+            </div>
+            <span class="badge badge-weekly">Semanal</span>
+          </header>
+
+          <div class="template-body">
+            <div class="form-group">
+              <label>Plantilla en Meta</label>
+              <select [ngModel]="weeklySelection" (ngModelChange)="onWeeklyTemplateChange($event)">
+                <option value="">— Seleccionar plantilla —</option>
+                <option *ngFor="let t of metaTemplates" [value]="templateKey(t.name, t.language)">
+                  {{ templateLabel(t) }}
+                </option>
+              </select>
+            </div>
+
+            <div class="placeholders-box">
+              <span class="ph-label">Placeholder:</span>
+              <span class="ph-chip">{{ templateRoles.weekly.placeholders[0] }}</span>
+            </div>
+
+            <div class="schedule-block">
+              <label>Día de la semana</label>
+              <select [(ngModel)]="config.weeklySendDay">
+                <option *ngFor="let d of weekdays" [ngValue]="d.value">{{ d.full }}</option>
+              </select>
+              <div class="time-row">
+                <label>Hora</label>
+                <input
+                  type="time"
+                  [ngModel]="formatTime(config.weeklySendHour, config.weeklySendMinute)"
+                  (ngModelChange)="onWeeklyTimeChange($event)">
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <div class="save-bar">
+          <button class="btn-primary" (click)="saveAll()" [disabled]="isSavingAll">
+            {{ isSavingAll ? 'Guardando...' : 'Guardar plantillas y horarios' }}
+          </button>
+          <p *ngIf="saved" class="msg-ok">✓ Configuración guardada</p>
+        </div>
+      </ng-container>
+    </section>
+  </ng-container>
+</div>
