@@ -1,0 +1,88 @@
+<div class="logs-page">
+  <div class="page-header">
+    <div>
+      <h1>Logs del agente</h1>
+      <p class="subtitle">
+        Actividad reciente en memoria y tail del archivo en disco (<code>logs/nedi-YYYY-MM-DD.log</code>).
+      </p>
+    </div>
+    <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="isLoading">
+      {{ isLoading ? 'Actualizando…' : 'Actualizar' }}
+    </button>
+  </div>
+
+  <div class="filters">
+    <label>
+      Filtrar instancia
+      <input
+        type="text"
+        [(ngModel)]="filterInstance"
+        placeholder="nedi_abc123"
+        (keyup.enter)="refresh()" />
+    </label>
+    <button type="button" class="btn-refresh" (click)="refresh()">Aplicar filtro</button>
+  </div>
+
+  <p *ngIf="error" class="msg-error">{{ error }}</p>
+
+  <div class="logs-grid">
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Actividad en vivo</h2>
+          <p class="card-desc">Últimos {{ entries.length }} eventos (máx. 80 visibles).</p>
+        </div>
+        <button type="button" class="btn-icon" (click)="scrollActivityToTop()" title="Ir al más reciente">
+          ↑
+        </button>
+      </div>
+
+      <div *ngIf="isLoading && entries.length === 0" class="loading">Cargando…</div>
+
+      <div class="scroll-carousel-wrap" *ngIf="entries.length > 0">
+        <div
+          #activityViewport
+          class="activity-list scroll-carousel"
+          (scroll)="onActivityScroll()">
+          <article
+            *ngFor="let entry of entries"
+            class="activity-item snap-item"
+            [ngClass]="levelClass(entry.level)">
+            <div class="activity-head">
+              <span class="badge">{{ eventLabel(entry.event) }}</span>
+              <span class="time">{{ formatTime(entry.timestamp) }}</span>
+            </div>
+            <div class="activity-meta">
+              <span>{{ entry.instance }}</span>
+              <span *ngIf="entry.phoneNumber"> · {{ entry.phoneNumber }}</span>
+              <span *ngIf="entry.direction"> · {{ entry.direction === 'in' ? 'entrante' : 'saliente' }}</span>
+            </div>
+            <p *ngIf="entry.messagePreview" class="preview">"{{ entry.messagePreview }}"</p>
+            <p *ngIf="entry.detail" class="detail">{{ entry.detail }}</p>
+          </article>
+        </div>
+      </div>
+
+      <p *ngIf="!isLoading && entries.length === 0" class="empty">
+        Sin actividad registrada aún. Envía un mensaje al agente para ver eventos aquí.
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Archivo de log</h2>
+          <p class="card-desc file-path" *ngIf="logFilePath">{{ logFilePath }}</p>
+          <p class="card-desc" *ngIf="!logFilePath">{{ fileMessage || 'Sin archivo disponible.' }}</p>
+        </div>
+        <button type="button" class="btn-icon" (click)="scrollFileToBottom()" title="Ir al final">
+          ↓
+        </button>
+      </div>
+
+      <div class="scroll-carousel-wrap file-wrap" *ngIf="fileLines.length > 0">
+        <pre #fileViewport class="file-tail scroll-carousel">{{ fileLines.join('\n') }}</pre>
+      </div>
+    </section>
+  </div>
+</div>

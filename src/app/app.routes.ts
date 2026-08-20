@@ -82,6 +82,14 @@ export const routes: Routes = [
       {
         path: 'notifications',
         loadComponent: () => import('./pages/admin/admin-notifications.component').then(m => m.AdminNotificationsComponent)
+      },
+      {
+        path: 'conversations',
+        loadComponent: () => import('./pages/admin/admin-conversations.component').then(m => m.AdminConversationsComponent)
+      },
+      {
+        path: 'agent-logs',
+        loadComponent: () => import('./pages/admin/admin-agent-logs.component').then(m => m.AdminAgentLogsComponent)
       }
     ]
   },

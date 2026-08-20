@@ -316,6 +316,26 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
     this.selectedModule = undefined;
   }
 
+  /** Mapea videoUrl/activityUrl del modal al payload del API (content / activityUrl). */
+  private applyModuleUrlFields(
+    target: Record<string, unknown>,
+    moduleData: Pick<ModuleFormData, 'videoUrl' | 'activityUrl'>,
+    mode: 'create' | 'update',
+  ): void {
+    const video = (moduleData.videoUrl ?? '').trim();
+    const activity = (moduleData.activityUrl ?? '').trim();
+
+    if (mode === 'update') {
+      // En edición siempre enviamos el valor (vacío = borrar en backend)
+      target['content'] = video;
+      target['activityUrl'] = activity;
+      return;
+    }
+
+    if (video) target['content'] = video;
+    if (activity) target['activityUrl'] = activity;
+  }
+
   handleModuleSubmit(moduleData: ModuleFormData) {
     if (!this.courseId) {
       return;
@@ -330,10 +350,7 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
       status: 'published' as ModuleStatus
     };
 
-    // Agregar URL del video si existe (se envía como 'content' al backend)
-    if (moduleData.videoUrl) {
-      moduleFormData.content = moduleData.videoUrl;
-    }
+    this.applyModuleUrlFields(moduleFormData, moduleData, 'create');
 
     // Primero crear el módulo
     this.coursesService.createModule(this.courseId, moduleFormData).pipe(
@@ -438,10 +455,10 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
       resources: resources
     };
 
-    // Preservar la URL del video si existe (se envía como 'content' al backend)
-    if ((currentModule as any).videoUrl || (currentModule as any).content) {
-      updatedModuleData.content = (currentModule as any).videoUrl || (currentModule as any).content;
-    }
+    this.applyModuleUrlFields(updatedModuleData, {
+      videoUrl: (currentModule as any).content || (currentModule as any).videoUrl || '',
+      activityUrl: (currentModule as any).activityUrl || '',
+    }, 'create');
 
     this.coursesService.updateModule(this.courseId, moduleId, updatedModuleData).pipe(
       takeUntil(this.destroy$)
@@ -474,10 +491,7 @@ export class CourseDetailsComponent implements OnInit, OnDestroy {
       status: this.selectedModule.status as ModuleStatus
     };
 
-    // Agregar URL del video si existe (se envía como 'content' al backend)
-    if (moduleData.videoUrl) {
-      moduleFormData.content = moduleData.videoUrl;
-    }
+    this.applyModuleUrlFields(moduleFormData, moduleData, 'update');
 
     // Obtener recursos que se mantendrán del modal (excluyendo los marcados para eliminación)
     const resourcesToKeep = moduleData.resourcesToKeep || [];

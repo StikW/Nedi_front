@@ -18,5 +18,7 @@ export interface Module {
   status: ModuleStatus;
   title: string;
   description: string;
+  content?: string;
+  activityUrl?: string;
   resources?: ModuleResource[];
 } 

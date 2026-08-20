@@ -1,0 +1,128 @@
+<div class="conversations-page">
+  <div class="page-header">
+    <div>
+      <h1>Conversaciones del agente</h1>
+      <p class="subtitle">
+        Historial en tiempo real desde Evolution API — sin almacenar mensajes en nuestra base de datos.
+      </p>
+    </div>
+    <button type="button" class="btn-refresh" (click)="loadInstructors()" [disabled]="isLoadingInstructors">
+      {{ isLoadingInstructors ? 'Actualizando…' : 'Actualizar' }}
+    </button>
+  </div>
+
+  <p *ngIf="error" class="msg-error">{{ error }}</p>
+
+  <div class="chat-workspace">
+    <!-- Instructores -->
+    <aside class="panel instructors-panel">
+      <div class="panel-head">
+        <h2>Instructores</h2>
+        <span class="count-badge">{{ instructors.length }}</span>
+      </div>
+      <div class="scroll-carousel-wrap">
+        <div *ngIf="isLoadingInstructors" class="panel-loading">Cargando…</div>
+        <ul *ngIf="!isLoadingInstructors" class="list scroll-carousel">
+          <li
+            *ngFor="let instructor of instructors"
+            class="list-item snap-item"
+            [class.active]="selectedInstructor?.id === instructor.id"
+            (click)="selectInstructor(instructor)">
+            <div class="item-title">{{ instructor.name }}</div>
+            <div class="item-sub">{{ instructor.email }}</div>
+            <div class="item-meta">
+              <span class="status-pill" [ngClass]="connectionClass(instructor)">
+                {{ connectionLabel(instructor) }}
+              </span>
+              <span class="instance">{{ instructor.evolutionInstance }}</span>
+            </div>
+          </li>
+        </ul>
+        <p *ngIf="!isLoadingInstructors && instructors.length === 0" class="empty">No hay instructores.</p>
+      </div>
+    </aside>
+
+    <!-- Chats -->
+    <aside class="panel chats-panel">
+      <div class="panel-head">
+        <h2>Chats</h2>
+        <span class="count-badge" *ngIf="selectedInstructor">{{ chats.length }}</span>
+      </div>
+      <p *ngIf="chatsSource === 'activity_log'" class="source-hint">
+        Mostrando conversaciones recientes desde logs del agente (Evolution findChats no respondió).
+      </p>
+      <div class="scroll-carousel-wrap">
+        <p *ngIf="!selectedInstructor" class="hint">Selecciona un instructor.</p>
+        <div *ngIf="selectedInstructor && isLoadingChats" class="panel-loading">Cargando chats…</div>
+        <ul *ngIf="selectedInstructor && !isLoadingChats" class="list scroll-carousel">
+          <li
+            *ngFor="let chat of chats"
+            class="list-item snap-item"
+            [class.active]="selectedChat?.remoteJid === chat.remoteJid"
+            (click)="selectChat(chat)">
+            <div class="item-title">{{ chatTitle(chat) }}</div>
+            <div class="item-sub">{{ formatPhone(chat.phoneNumber) }}</div>
+            <div class="item-preview" *ngIf="chat.lastMessagePreview">{{ chat.lastMessagePreview }}</div>
+            <div class="item-time" *ngIf="chat.lastMessageAt">{{ formatTime(chat.lastMessageAt) }}</div>
+          </li>
+        </ul>
+        <p *ngIf="selectedInstructor && !isLoadingChats && chats.length === 0" class="empty">
+          Sin conversaciones en Evolution para este instructor.
+        </p>
+      </div>
+    </aside>
+
+    <!-- Mensajes -->
+    <section class="panel messages-panel">
+      <header class="messages-header" *ngIf="selectedChat">
+        <div>
+          <strong>{{ chatTitle(selectedChat) }}</strong>
+          <span class="header-phone">{{ formatPhone(selectedChat.phoneNumber) }}</span>
+        </div>
+        <div class="header-actions">
+          <span class="count-badge">{{ messages.length }}</span>
+          <button type="button" class="btn-small" (click)="loadMessages(selectedChat)">Recargar</button>
+          <button type="button" class="btn-small" (click)="scrollMessagesToBottom()" title="Ir al final">
+            ↓
+          </button>
+        </div>
+      </header>
+
+      <p *ngIf="!selectedChat" class="hint center panel-placeholder">Selecciona un chat para ver los mensajes.</p>
+      <div *ngIf="selectedChat && isLoadingMessages" class="panel-loading center panel-placeholder">
+        Cargando mensajes…
+      </div>
+
+      <div class="messages-body" *ngIf="selectedChat && !isLoadingMessages">
+        <div class="scroll-carousel-wrap messages-wrap">
+          <div
+            #messagesViewport
+            class="messages-scroll scroll-carousel"
+            (scroll)="onMessagesScroll()">
+            <button
+              *ngIf="hasOlderMessages"
+              type="button"
+              class="load-older"
+              [disabled]="isLoadingOlderMessages"
+              (click)="loadOlderMessages()">
+              {{ isLoadingOlderMessages ? 'Cargando…' : '↑ Mensajes anteriores' }}
+            </button>
+
+            <div
+              *ngFor="let msg of messages"
+              class="bubble-row snap-item"
+              [class.outgoing]="msg.fromMe"
+              [class.incoming]="!msg.fromMe">
+              <div class="bubble">
+                <p class="bubble-text">{{ msg.text || ('[' + msg.messageType + ']') }}</p>
+                <span class="bubble-time">{{ formatTime(msg.timestamp) }}</span>
+              </div>
+            </div>
+
+            <p *ngIf="messages.length === 0" class="empty center">No hay mensajes en este chat.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

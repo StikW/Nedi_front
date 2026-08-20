@@ -9,6 +9,7 @@ export interface ModuleFormData {
   description: string;
   files?: File[];
   videoUrl?: string;
+  activityUrl?: string;
   resourcesToKeep?: ModuleResource[];
 }
 
@@ -43,6 +44,7 @@ export class ModuleModalComponent implements OnInit, OnChanges {
 
   selectedFiles: File[] = [];
   videoUrl: string = '';
+  activityUrl: string = '';
   existingResources: ModuleResource[] = [];
   resourcesToDelete: number[] = []; // Array de índices de recursos a eliminar
   fileError: string | null = null; // Mensaje de error para archivos no válidos
@@ -85,13 +87,16 @@ export class ModuleModalComponent implements OnInit, OnChanges {
     if (this.mode === 'edit' && this.module) {
       // El backend envía 'content' pero el componente usa 'videoUrl'
       const videoUrlValue = (this.module as any).content || (this.module as any).videoUrl || '';
+      const activityUrlValue = (this.module as any).activityUrl || '';
       this.moduleData = {
         title: this.module.title,
         description: this.module.description,
         files: [],
-        videoUrl: videoUrlValue
+        videoUrl: videoUrlValue,
+        activityUrl: activityUrlValue
       };
       this.videoUrl = videoUrlValue;
+      this.activityUrl = activityUrlValue;
       this.existingResources = this.module.resources || [];
     } else {
       this.moduleData = {
@@ -100,6 +105,7 @@ export class ModuleModalComponent implements OnInit, OnChanges {
         files: []
       };
       this.videoUrl = '';
+      this.activityUrl = '';
       this.existingResources = [];
     }
     this.selectedFiles = [];
@@ -146,9 +152,18 @@ export class ModuleModalComponent implements OnInit, OnChanges {
     this.moduleData.videoUrl = this.videoUrl;
   }
 
+  onActivityUrlChange() {
+    this.moduleData.activityUrl = this.activityUrl;
+  }
+
   clearVideoUrl() {
     this.videoUrl = '';
     this.moduleData.videoUrl = undefined;
+  }
+
+  clearActivityUrl() {
+    this.activityUrl = '';
+    this.moduleData.activityUrl = undefined;
   }
 
   onSubmit() {
@@ -164,6 +179,7 @@ export class ModuleModalComponent implements OnInit, OnChanges {
       description: this.moduleData.description,
       files: this.selectedFiles,
       videoUrl: this.videoUrl.trim() || undefined,
+      activityUrl: this.activityUrl.trim() || undefined,
       resourcesToKeep: resourcesToKeep
     });
   }
@@ -181,6 +197,7 @@ export class ModuleModalComponent implements OnInit, OnChanges {
     };
     this.selectedFiles = [];
     this.videoUrl = '';
+    this.activityUrl = '';
     this.existingResources = [];
     this.resourcesToDelete = [];
     this.fileError = null;
